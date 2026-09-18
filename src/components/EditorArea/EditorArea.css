@@ -1,0 +1,144 @@
+.editor-area {
+  flex: 1;
+  background: #fff;
+  margin: 20px;
+  border-radius: 12px;
+  padding: 30px 40px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: visible;
+  justify-content: flex-start;
+}
+
+.logo-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 18px;
+  font-weight: 550;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logo-mark {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #FF6B6B, #6B5CFF);
+  border-radius: 4px;
+  transform: rotate(-5deg);
+}
+
+.logo-text {
+  color: #333;
+}
+
+/* Question Section */
+.question-section {
+  cursor: pointer;
+  padding: 16px 24px;
+  margin-top: 50px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease;
+  flex-shrink: 0;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: transparent;
+}
+
+.question-section:hover {
+  border-color: rgba(107, 92, 255, 0.2);
+}
+
+.question-section.selected {
+  border-color: #6B5CFF;
+  background: #fff;
+}
+
+.question-editable {
+  font-size: 42px;
+  font-weight: 400;
+  color: #333;
+  line-height: 1.2;
+  outline: none;
+  width: 100%;
+  min-height: 50px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  cursor: text;
+}
+
+.question-editable:empty:before {
+  content: attr(data-placeholder);
+  color: #999;
+  font-style: normal;
+}
+
+.question-editable:focus {
+  outline: none;
+}
+
+.question-editable:focus:empty:before {
+  content: attr(data-placeholder);
+  color: #999;
+}
+
+/* Word Cloud Container */
+.word-cloud-container {
+  flex: 1 1 550px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  overflow: visible;
+  transition: border-color 0.15s ease;
+  margin-top: 35px;
+  margin-bottom: 45px;
+  min-height: 550px;
+}
+
+.word-cloud-container:hover {
+  border-color: rgba(107, 92, 255, 0.3);
+}
+
+.word-cloud-container.selected {
+  border-color: #6B5CFF;
+}
+
+.word-cloud-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.thumbs-up-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #F0F0F0;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.thumbs-up-btn:hover {
+  background: #E0E0E0;
+}

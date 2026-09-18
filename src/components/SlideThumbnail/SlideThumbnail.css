@@ -1,0 +1,42 @@
+.slide-thumbnail {
+  position: relative;
+  margin-left: 8px;
+}
+
+.slide-number {
+  position: absolute;
+  left: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #888;
+}
+
+.slide-preview {
+  width: 140px;
+  height: 80px;
+  border: 2px solid #7C5CFF;
+  border-radius: 8px;
+  background: #fff;
+  position: relative;
+  cursor: pointer;
+}
+
+.slide-preview:hover {
+  border-color: #5A4BE0;
+}
+
+.slide-label {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #E8E8E8;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
