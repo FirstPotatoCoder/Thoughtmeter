@@ -15,15 +15,49 @@
 .slide-preview {
   width: 140px;
   height: 80px;
-  border: 2px solid #7C5CFF;
+  border: 2px solid transparent;
   border-radius: 8px;
   background: #fff;
   position: relative;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .slide-preview:hover {
-  border-color: #5A4BE0;
+  border-color: #b9b2f5;
+}
+
+.slide-preview.active {
+  border-color: #7C5CFF;
+}
+
+.thumb-question {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  font-size: 8px;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thumb-bars {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 16px;
+  height: 34px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.thumb-bars span {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
 }
 
 .slide-label {

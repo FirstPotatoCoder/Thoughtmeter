@@ -1,3 +1,14 @@
+:root {
+  --palette-blue-500: #5e60ce;
+  --palette-coral-500: #f0655a;
+  --palette-coral-300: #f2b3a9;
+
+  /* Fixed slide canvas size (16:9). Shared by every slide type so the
+     container never resizes when the content inside it changes. */
+  --slide-width: 1458px;
+  --slide-height: 820px;
+}
+
 * {
   margin: 0;
   padding: 0;

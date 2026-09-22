@@ -1,5 +1,8 @@
 .editor-area {
-  flex: 1;
+  /* Fixed, content-independent slide canvas (see --slide-* in index.css). */
+  flex: none;
+  width: var(--slide-width);
+  height: var(--slide-height);
   background: #fff;
   margin: 20px;
   border-radius: 12px;
@@ -7,7 +10,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
+  box-sizing: border-box;
   justify-content: flex-start;
 }
 
@@ -35,62 +39,24 @@
   color: #333;
 }
 
-/* Question Section */
-.question-section {
-  cursor: pointer;
-  padding: 16px 24px;
+/* MCQ Preview: question pill (replaces the editable question) */
+.mcq-question-pill {
   margin-top: 50px;
-  border-radius: 12px;
-  border: 2px solid transparent;
-  transition: border-color 0.15s ease;
+  align-self: center;
+  background: rgba(107, 92, 255, 0.12);
+  color: #2d2d2d;
+  font-size: 26px;
+  font-weight: 600;
+  padding: 14px 36px;
+  border-radius: 999px;
   flex-shrink: 0;
-  min-height: 80px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  background: transparent;
 }
 
-.question-section:hover {
-  border-color: rgba(107, 92, 255, 0.2);
-}
-
-.question-section.selected {
-  border-color: #6B5CFF;
-  background: #fff;
-}
-
-.question-editable {
-  font-size: 42px;
-  font-weight: 400;
-  color: #333;
-  line-height: 1.2;
-  outline: none;
-  width: 100%;
-  min-height: 50px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  cursor: text;
-}
-
-.question-editable:empty:before {
-  content: attr(data-placeholder);
-  color: #999;
-  font-style: normal;
-}
-
-.question-editable:focus {
-  outline: none;
-}
-
-.question-editable:focus:empty:before {
-  content: attr(data-placeholder);
-  color: #999;
-}
-
-/* Word Cloud Container */
-.word-cloud-container {
-  flex: 1 1 550px;
+/* Shared slide body box (word cloud, MCQ options, ...) — fills whatever
+   space is left in the fixed canvas and never dictates its size. */
+.slide-body {
+  /* Fills whatever space is left in the fixed canvas — never dictates size. */
+  flex: 1 1 auto;
   border: 2px solid transparent;
   border-radius: 12px;
   display: flex;
@@ -103,14 +69,14 @@
   transition: border-color 0.15s ease;
   margin-top: 35px;
   margin-bottom: 45px;
-  min-height: 550px;
+  min-height: 0;
 }
 
-.word-cloud-container:hover {
+.slide-body:hover {
   border-color: rgba(107, 92, 255, 0.3);
 }
 
-.word-cloud-container.selected {
+.slide-body.selected {
   border-color: #6B5CFF;
 }
 

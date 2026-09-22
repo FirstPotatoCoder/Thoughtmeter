@@ -1,11 +1,15 @@
 .word-cloud {
+  /* Must fill the whole area: words are absolutely positioned against it,
+     so a collapsed (0-height) box would clamp them into one line. */
   flex: 1;
+  width: 100%;
+  height: 100%;
+  align-self: stretch;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  margin-top: auto;
-  min-height: 550px;
+  min-height: 0;
 }
 
 .word {

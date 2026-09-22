@@ -1,0 +1,49 @@
+.mcq-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  padding: 10px 20px 0;
+}
+
+.mcq-bar-col {
+  flex: 1;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mcq-bar-area {
+  flex: 1;
+  position: relative;
+}
+
+.mcq-preview-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 10px 10px 0 0;
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mcq-preview-count {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 40px;
+  font-weight: 500;
+  color: #333;
+  /* Follows the bar top with the same easing when values update. */
+  transition: bottom 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mcq-preview-label {
+  text-align: center;
+  font-size: 28px;
+  color: #999;
+  margin-top: 14px;
+  padding-bottom: 6px;
+}
