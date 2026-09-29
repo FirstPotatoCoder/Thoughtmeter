@@ -2,6 +2,7 @@ import "./EditorArea.css";
 import WordCloudSlide from "./WordCloudSlide";
 import McqSlide from "./McqSlide";
 import McqPreviewSlide from "./McqPreviewSlide";
+import WordCloudPreviewSlide from "./WordCloudPreviewSlide";
 
 /**
  * Renders the active slide in the fixed-size canvas.
@@ -18,6 +19,10 @@ export default function EditorArea({
 }) {
   if (previewType === "mcq") {
     return <McqPreviewSlide />;
+  }
+
+  if (previewType === "word-cloud") {
+    return <WordCloudPreviewSlide />;
   }
 
   if (slide.type === "mcq") {
