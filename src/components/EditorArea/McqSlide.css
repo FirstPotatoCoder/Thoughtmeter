@@ -1,0 +1,185 @@
+/* MCQ slide: options live in the shared fixed-size .slide-body box. */
+
+.mcq-options {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  padding: 10px 20px 0;
+}
+
+.mcq-option {
+  flex: 1;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* everything sits on the same baseline for all options */
+  cursor: pointer;
+  position: relative; /* anchor for the absolutely-positioned toolbar */
+}
+
+/* Wraps only the bar line + label, so selecting an option never
+   "raises" it above the others. Top-to-bottom: number, bar, padding, label. */
+.mcq-option-box {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* padding between the bar and the option name */
+  border: 2px solid transparent;
+  border-radius: 12px;
+  position: relative;
+  transition: border-color 0.15s ease;
+}
+
+.mcq-option-box:hover {
+  border-color: rgba(107, 92, 255, 0.3);
+}
+
+.mcq-option-box.selected {
+  border-color: #6B5CFF;
+}
+
+/* Real slides have no votes yet, so bars render as flat lines. */
+.mcq-bar {
+  height: 6px;
+  border-radius: 3px;
+}
+
+.mcq-bar-count {
+  display: block;
+  text-align: left; /* left-align the count with the bar + label below it */
+  font-size: 40px;
+  font-weight: 500;
+  color: #2d2d2d;
+  line-height: 1;
+  margin-bottom: 20px; /* gap between the number and the bar */
+}
+
+/* Real text is dark; "Option" is a :empty placeholder, same pattern as
+   .question-editable in QuestionEditor.css. Left-aligned so the caret
+   sits at the left edge of the word. */
+.mcq-bar-label {
+  text-align: left;
+  font-size: 28px;
+  color: #2d2d2d;
+  padding: 2px 0 4px; /* flush left so the label lines up with the count + bar */
+  outline: none;
+}
+
+.mcq-bar-label:empty:before {
+  content: attr(data-placeholder);
+  color: #999;
+}
+
+.mcq-bar-label[contenteditable="true"] {
+  cursor: text;
+}
+
+/* "+" add-option button on the right edge of the selected option. */
+.mcq-add-btn {
+  position: absolute;
+  right: -17px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #6b5cff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.mcq-add-btn:hover {
+  background: #5a4be0;
+}
+
+/* Toolbar hangs below the column OUTSIDE the flow (absolute), so showing
+   it never shifts the selected option's box/count upward. */
+.mcq-option-toolbar {
+  position: absolute;
+  bottom: -56px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 6px 10px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.mcq-color-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mcq-color-picker {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 20;
+}
+
+.mcq-color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mcq-color-swatch.active {
+  border-color: #2d2d2d;
+}
+
+.mcq-toolbar-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mcq-toolbar-btn:hover {
+  background: #f0f0f0;
+}
+
+.mcq-toolbar-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.mcq-toolbar-btn:disabled:hover {
+  background: transparent;
+}
+
+.mcq-count-pill {
+  padding: 4px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 999px;
+  font-size: 13px;
+  color: #555;
+}
