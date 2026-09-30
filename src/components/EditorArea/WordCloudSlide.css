@@ -1,0 +1,12 @@
+.word {
+  position: absolute;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: default;
+  transform: translate(-50%, -50%);
+}
+
+.wc-placeholder-word {
+  /* same as default slide — no extra opacity */
+}

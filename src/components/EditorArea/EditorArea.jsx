@@ -3,6 +3,7 @@ import WordCloudSlide from "./WordCloudSlide";
 import McqSlide from "./McqSlide";
 import McqPreviewSlide from "./McqPreviewSlide";
 import WordCloudPreviewSlide from "./WordCloudPreviewSlide";
+import EmptyState from "./EmptyState";
 
 /**
  * Renders the active slide in the fixed-size canvas.
@@ -12,18 +13,21 @@ import WordCloudPreviewSlide from "./WordCloudPreviewSlide";
 export default function EditorArea({
   previewType = null,
   slide,
+  slides = [],
   onQuestionChange,
   onAddOption,
   onUpdateOption,
   onDeleteOption,
+  onUpdateCloudWords,
 }) {
-  if (previewType === "mcq") {
-    return <McqPreviewSlide />;
+  const isEmpty = !slide || slides.length === 0;
+
+  if (previewType) {
+    if (previewType === "mcq") return <McqPreviewSlide />;
+    if (previewType === "word-cloud") return <WordCloudPreviewSlide />;
   }
 
-  if (previewType === "word-cloud") {
-    return <WordCloudPreviewSlide />;
-  }
+  if (isEmpty) return <EmptyState />;
 
   if (slide.type === "mcq") {
     return (
@@ -37,5 +41,11 @@ export default function EditorArea({
     );
   }
 
-  return <WordCloudSlide slide={slide} onQuestionChange={onQuestionChange} />;
+  return (
+    <WordCloudSlide
+      slide={slide}
+      onQuestionChange={onQuestionChange}
+      onUpdateCloudWords={onUpdateCloudWords}
+    />
+  );
 }

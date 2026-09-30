@@ -1,0 +1,33 @@
+.empty-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.empty-subtitle {
+  font-size: 16px;
+  color: #999;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.empty-subtitle strong {
+  color: #666;
+  font-weight: 500;
+}

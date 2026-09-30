@@ -1,6 +1,7 @@
 .slide-thumbnail {
   position: relative;
   margin-left: 8px;
+  margin-right: 8px;
 }
 
 .slide-number {
@@ -10,6 +11,34 @@
   transform: translateY(-50%);
   font-size: 14px;
   color: #888;
+}
+
+.thumbnail-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.slide-preview:hover .thumbnail-delete-btn,
+.slide-preview.active .thumbnail-delete-btn {
+  opacity: 1;
+}
+
+.thumbnail-delete-btn:hover {
+  background: rgba(240, 101, 90, 0.2);
+  color: #f0655a;
 }
 
 .slide-preview {

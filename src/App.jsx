@@ -6,6 +6,7 @@ import EditorArea from './components/EditorArea/EditorArea';
 import RightSidebar from './components/RightSidebar/RightSidebar';
 import BottomIcons from './components/BottomIcons/BottomIcons';
 import { MCQ_COLORS } from './palette';
+import { DEFAULT_CLOUD_WORDS } from './components/EditorArea/WordCloudSlide';
 
 const DEFAULT_MCQ_OPTIONS = () =>
   [0, 1, 2].map((i) => ({
@@ -19,18 +20,21 @@ function App() {
   // Slide type being previewed in the canvas (e.g. 'mcq' while hovering
   // the MCQ button in the New slide menu). null = the actual slide.
   const [previewType, setPreviewType] = useState(null);
-  const [slides, setSlides] = useState([
-    { id: 1, type: 'wordcloud', questionHtml: '' },
-  ]);
-  const [activeSlideId, setActiveSlideId] = useState(1);
+  const [slides, setSlides] = useState([]);
+  const [activeSlideId, setActiveSlideId] = useState(null);
 
-  const activeSlide = slides.find((s) => s.id === activeSlideId) || slides[0];
+  const activeSlide = slides.find((s) => s.id === activeSlideId);
 
   const addSlide = (type) => {
     const slide =
       type === 'mcq'
-        ? { id: Date.now(), type, questionHtml: '', options: DEFAULT_MCQ_OPTIONS() }
-        : { id: Date.now(), type, questionHtml: '' };
+        ? {
+            id: Date.now(),
+            type,
+            questionHtml: '',
+            options: DEFAULT_MCQ_OPTIONS(),
+          }
+        : { id: Date.now(), type, questionHtml: '', cloudWords: [] };
     setSlides((prev) => [...prev, slide]);
     setActiveSlideId(slide.id);
   };
@@ -83,9 +87,18 @@ function App() {
       ),
     );
 
+  const handleDeleteSlide = (slideId) => {
+    setSlides((prev) => {
+      const remaining = prev.filter((s) => s.id !== slideId);
+      if (activeSlideId === slideId) {
+        setActiveSlideId(remaining.length > 0 ? remaining[0].id : null);
+      }
+      return remaining;
+    });
+  };
+
   const handleSelectOption = (id) => {
-    if (id === 'mcq') addSlide('mcq');
-    // Word Cloud / Open Ended / Q&A are not implemented yet.
+    if (id === 'mcq' || id === 'word-cloud') addSlide(id);
   };
 
   return (
@@ -95,19 +108,28 @@ function App() {
         <LeftSidebar
           onPreviewSlide={setPreviewType}
           slides={slides}
-          activeSlideId={activeSlide.id}
+          activeSlideId={activeSlideId}
           onSelectSlide={setActiveSlideId}
           onSelectOption={handleSelectOption}
+          onDeleteSlide={handleDeleteSlide}
         />
         <main className="main-content">
           <EditorArea
-            key={activeSlide.id + (previewType ? `-${previewType}` : '')}
+            key={activeSlideId + (previewType ? `-${previewType}` : '')}
             previewType={previewType}
             slide={activeSlide}
+            slides={slides}
             onQuestionChange={handleQuestionChange}
             onAddOption={handleAddOption}
             onUpdateOption={handleUpdateOption}
             onDeleteOption={handleDeleteOption}
+            onUpdateCloudWords={(slideId, words) =>
+              setSlides((prev) =>
+                prev.map((s) =>
+                  s.id === slideId ? { ...s, cloudWords: words } : s
+                )
+              )
+            }
           />
           <BottomIcons />
         </main>

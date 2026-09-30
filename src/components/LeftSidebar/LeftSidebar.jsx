@@ -9,6 +9,7 @@ export default function LeftSidebar({
   activeSlideId,
   onSelectSlide,
   onSelectOption,
+  onDeleteSlide,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -48,6 +49,7 @@ export default function LeftSidebar({
           questionText={slide.questionHtml?.replace(/<[^>]*>/g, '')}
           active={slide.id === activeSlideId}
           onClick={() => onSelectSlide(slide.id)}
+          onDelete={() => onDeleteSlide(slide.id)}
         />
       ))}
     </aside>
