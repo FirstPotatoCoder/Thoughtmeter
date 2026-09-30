@@ -1,6 +1,4 @@
 .word-cloud {
-  /* Must fill the whole area: words are absolutely positioned against it,
-     so a collapsed (0-height) box would clamp them into one line. */
   flex: 1;
   width: 100%;
   height: 100%;
@@ -14,68 +12,10 @@
 
 .word {
   position: absolute;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
   cursor: default;
-}
-
-.word-fast {
-  font-size: 80px;
-  font-weight: 300;
-  color: #B8B0D8;
-  top: 10%;
-  left: 35%;
-  transform: translateX(-50%);
-}
-
-.word-bold {
-  font-size: 50px;
-  font-weight: 300;
-  color: #D4919A;
-  top: 18%;
-  left: 65%;
-  transform: translateX(-50%);
-}
-
-.word-creative {
-  font-size: 70px;
-  font-weight: 300;
-  color: #A89FD8;
-  top: 40%;
-  left: 40%;
-  transform: translateX(-50%);
-}
-
-.word-inspiration {
-  font-size: 24px;
-  font-weight: 300;
-  color: #C4B5E8;
-  top: 52%;
-  left: 65%;
-  transform: translateX(-50%);
-}
-
-.word-leader {
-  font-size: 75px;
-  font-weight: 300;
-  color: #A89FD8;
-  top: 60%;
-  left: 38%;
-  transform: translateX(-50%);
-}
-
-.word-focus {
-  font-size: 55px;
-  font-weight: 300;
-  color: #D4919A;
-  top: 62%;
-  left: 62%;
-  transform: translateX(-50%);
-}
-
-.word-transpiration {
-  font-size: 40px;
-  font-weight: 300;
-  color: #D4919A;
-  top: 78%;
-  left: 42%;
-  transform: translateX(-50%);
+  /* Center-anchors the word perfectly to the calculated algorithmic offsets */
+  transform: translate(-50%, -50%);
 }

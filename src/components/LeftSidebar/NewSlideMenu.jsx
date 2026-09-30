@@ -100,7 +100,9 @@ export default function NewSlideMenu({ onClose, onHoverOption, onSelectOption })
             className="new-slide-menu-item"
             role="menuitem"
             onClick={() => handleSelect(id)}
-            onMouseEnter={() => onHoverOption?.(id === 'mcq' ? 'mcq' : null)}
+            onMouseEnter={() =>
+              onHoverOption?.(id === "mcq" || id === "word-cloud" ? id : null)
+            }
           >
             <span className="new-slide-menu-item-icon">
               <Icon />
