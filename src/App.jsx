@@ -98,7 +98,7 @@ function App() {
   };
 
   const handleSelectOption = (id) => {
-    if (id === 'mcq' || id === 'word-cloud') addSlide(id);
+    if (id === 'mcq' || id === 'word-cloud' || id === 'open-ended') addSlide(id);
   };
 
   return (
