@@ -51,6 +51,7 @@
   position: relative;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
 }
 
 .slide-preview:hover {
@@ -61,35 +62,188 @@
   border-color: #7C5CFF;
 }
 
+/* Slide title / question line at the top */
 .thumb-question {
   position: absolute;
-  top: 10px;
+  top: 8px;
   left: 10px;
-  right: 10px;
-  font-size: 8px;
-  color: #999;
+  right: 26px;
+  font-size: 8.5px;
+  font-weight: 500;
+  color: #374151;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
-.thumb-bars {
+.thumb-question.placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* 1. MCQ: Rising Bar Chart */
+.thumb-mcq-bars {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 16px;
-  height: 34px;
+  left: 12px;
+  bottom: 12px;
+  height: 32px;
   display: flex;
   align-items: flex-end;
-  gap: 8px;
+  gap: 6px;
 }
 
-.thumb-bars span {
+.thumb-mcq-bars .thumb-bar {
+  width: 13px;
+  border-radius: 2px 2px 0 0;
+}
+
+/* 2. Word Cloud: Organic cloud-like cluster */
+.thumb-word-cloud {
+  position: absolute;
+  left: 10px;
+  right: 28px;
+  bottom: 10px;
+  height: 38px;
+  user-select: none;
+}
+
+.thumb-wc-word {
+  position: absolute;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.thumb-wc-word.w-fast {
+  top: 2px;
+  left: 34px;
+  font-size: 8px;
+  font-weight: 600;
+  color: #E8695F;
+}
+
+.thumb-wc-word.w-creative {
+  top: 13px;
+  left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7AE6;
+}
+
+.thumb-wc-word.w-bold {
+  top: 14px;
+  left: 58px;
+  font-size: 7.5px;
+  font-weight: 600;
+  color: #F2C14E;
+}
+
+.thumb-wc-word.w-focus {
+  bottom: 2px;
+  left: 26px;
+  font-size: 7px;
+  font-weight: 600;
+  color: #3C4580;
+}
+
+/* 3. Open Ended: 1 row, 3 columns of gray audience response cards */
+.thumb-open-ended {
+  position: absolute;
+  left: 10px;
+  right: 28px;
+  bottom: 12px;
+  height: 32px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.thumb-oe-card {
   flex: 1;
-  height: 6px;
-  border-radius: 3px;
+  height: 26px;
+  background: #f1f3f5;
+  border-radius: 4px;
+  padding: 4px 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  box-sizing: border-box;
 }
 
+.thumb-line {
+  height: 2.5px;
+  background: #cbd5e1;
+  border-radius: 1.5px;
+}
+
+.thumb-line.full {
+  width: 100%;
+}
+
+.thumb-line.three-quarter {
+  width: 75%;
+}
+
+.thumb-line.half {
+  width: 50%;
+}
+
+/* 4. Q&A: Audience Question Card */
+.thumb-qa {
+  position: absolute;
+  left: 12px;
+  right: 28px;
+  bottom: 10px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.thumb-qa-card {
+  width: 74px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 3px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.thumb-qa-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.thumb-qa-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f0655a;
+  flex-shrink: 0;
+}
+
+.thumb-qa-footer {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #475569;
+}
+
+.thumb-qa-thumb {
+  color: #475569;
+}
+
+.thumb-qa-count {
+  font-size: 7px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Presenter label (bottom right) */
 .slide-label {
   position: absolute;
   bottom: 4px;
@@ -103,4 +257,5 @@
   align-items: center;
   justify-content: center;
   color: #666;
+  z-index: 2;
 }

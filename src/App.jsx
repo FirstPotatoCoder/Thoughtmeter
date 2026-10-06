@@ -34,12 +34,6 @@ function App() {
             questionHtml: '',
             options: DEFAULT_MCQ_OPTIONS(),
           }
-        : type === 'qa'
-        ? {
-            id: Date.now(),
-            type,
-            questionHtml: 'Ask me anything!',
-          }
         : { id: Date.now(), type, questionHtml: '', cloudWords: [] };
     setSlides((prev) => [...prev, slide]);
     setActiveSlideId(slide.id);
