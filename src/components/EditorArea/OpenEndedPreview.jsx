@@ -20,19 +20,17 @@ const RESPONSES = [
 ];
 
 export default function OpenEndedPreview() {
-  // Partition into two columns to allow independent heights
-  // while maintaining the left-right-left-right sequential order
-  const leftColumn = RESPONSES.filter((_, i) => i % 2 === 0);
-  const rightColumn = RESPONSES.filter((_, i) => i % 2 !== 0);
+  // Partition into three columns to allow independent heights
+  // while maintaining the left-center-right sequential order
+  const col1 = RESPONSES.filter((_, i) => i % 3 === 0);
+  const col2 = RESPONSES.filter((_, i) => i % 3 === 1);
+  const col3 = RESPONSES.filter((_, i) => i % 3 === 2);
 
-  // Reduced the animation delay slightly (from 0.7s to 0.2s)
-  // so the user isn't waiting 10+ seconds for all cards to appear,
-  // but the alternating sequence logic remains exactly as requested.
   return (
     <div className="open-ended-preview">
       <div className="oe-column">
-        {leftColumn.map((text, index) => {
-          const originalIndex = index * 2;
+        {col1.map((text, index) => {
+          const originalIndex = index * 3;
           return (
             <div
               key={originalIndex}
@@ -46,8 +44,23 @@ export default function OpenEndedPreview() {
       </div>
 
       <div className="oe-column">
-        {rightColumn.map((text, index) => {
-          const originalIndex = index * 2 + 1;
+        {col2.map((text, index) => {
+          const originalIndex = index * 3 + 1;
+          return (
+            <div
+              key={originalIndex}
+              className="oe-response"
+              style={{ animationDelay: `${originalIndex * 0.8}s` }}
+            >
+              {text}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="oe-column">
+        {col3.map((text, index) => {
+          const originalIndex = index * 3 + 2;
           return (
             <div
               key={originalIndex}
