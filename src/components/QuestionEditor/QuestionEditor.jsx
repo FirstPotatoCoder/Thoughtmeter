@@ -25,12 +25,15 @@ export default function QuestionEditor({
   });
   const rootRef = useRef(null);
   const questionRef = useRef(null);
+  const charCountRef = useRef(0);
 
   // Seed the contentEditable once (it stays uncontrolled after this).
   useEffect(() => {
     if (questionRef.current) {
       questionRef.current.innerHTML = initialHtml;
-      setWordCount(questionRef.current.textContent.length);
+      const len = questionRef.current.textContent.length;
+      setWordCount(len);
+      charCountRef.current = len;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -81,6 +84,7 @@ export default function QuestionEditor({
     if (!questionRef.current) return;
     const content = questionRef.current.textContent;
     setWordCount(content.length);
+    charCountRef.current = content.length;
 
     // If the user deleted everything, the DOM can still contain leftover
     // empty formatting tags with the caret parked inside them. Hard-reset
@@ -159,6 +163,21 @@ export default function QuestionEditor({
     }
 
     const isModifier = e.metaKey || e.ctrlKey;
+
+    // Allow navigation, deletion, selection, and modifier-based shortcuts
+    // through even when at the character limit.
+    const allowedKeys = [
+      "Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+      "Home", "End", "Tab", "Escape",
+    ];
+    const isAllowed = allowedKeys.includes(e.key) || isModifier;
+
+    // Block printable character input when at the limit.
+    if (!isAllowed && charCountRef.current >= MAX_CHARS) {
+      e.preventDefault();
+      return;
+    }
+
     if (!isModifier) return;
 
     const key = e.key.toLowerCase();
@@ -176,6 +195,16 @@ export default function QuestionEditor({
     }
   }, []);
 
+  // Trim pasted text so it doesn't exceed the character limit.
+  const handlePaste = useCallback((e) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    const remaining = MAX_CHARS - charCountRef.current;
+    if (remaining <= 0) return;
+    const trimmed = text.slice(0, remaining);
+    document.execCommand("insertText", false, trimmed);
+  }, []);
+
   return (
     <div ref={rootRef} className="question-editor">
       <div
@@ -188,6 +217,7 @@ export default function QuestionEditor({
           contentEditable={selected}
           suppressContentEditableWarning={true}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           onInput={handleInput}
           onClick={syncActiveFormats}
           onMouseUp={syncActiveFormats}

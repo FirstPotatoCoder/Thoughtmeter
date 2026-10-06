@@ -8,11 +8,15 @@ import OpenEndedSlide from "./OpenEndedSlide";
 import QaPreviewSlide from "./QaPreviewSlide";
 import QaSlide from "./QaSlide";
 import EmptyState from "./EmptyState";
+import SlideScaler from "./SlideScaler";
 
 /**
  * Renders the active slide in the fixed-size canvas.
  * `previewType` (e.g. 'mcq' while hovering the New slide menu) takes
  * priority over the real slide.
+ *
+ * Every slide is wrapped in <SlideScaler> which uses a ResizeObserver to
+ * scale the fixed-size canvas to fit the available viewport.
  */
 export default function EditorArea({
   previewType = null,
@@ -27,39 +31,51 @@ export default function EditorArea({
   const isEmpty = !slide || slides.length === 0;
 
   if (previewType) {
-    if (previewType === "mcq") return <McqPreviewSlide />;
-    if (previewType === "word-cloud") return <WordCloudPreviewSlide />;
-    if (previewType === "open-ended") return <OpenEndedPreviewSlide />;
-    if (previewType === "qa") return <QaPreviewSlide />;
+    if (previewType === "mcq") return <SlideScaler><McqPreviewSlide /></SlideScaler>;
+    if (previewType === "word-cloud") return <SlideScaler><WordCloudPreviewSlide /></SlideScaler>;
+    if (previewType === "open-ended") return <SlideScaler><OpenEndedPreviewSlide /></SlideScaler>;
+    if (previewType === "qa") return <SlideScaler><QaPreviewSlide /></SlideScaler>;
   }
 
-  if (isEmpty) return <EmptyState />;
+  if (isEmpty) return <SlideScaler><EmptyState /></SlideScaler>;
 
   if (slide.type === "mcq") {
     return (
-      <McqSlide
-        slide={slide}
-        onQuestionChange={onQuestionChange}
-        onAddOption={onAddOption}
-        onUpdateOption={onUpdateOption}
-        onDeleteOption={onDeleteOption}
-      />
+      <SlideScaler>
+        <McqSlide
+          slide={slide}
+          onQuestionChange={onQuestionChange}
+          onAddOption={onAddOption}
+          onUpdateOption={onUpdateOption}
+          onDeleteOption={onDeleteOption}
+        />
+      </SlideScaler>
     );
   }
 
   if (slide.type === "open-ended") {
-    return <OpenEndedSlide slide={slide} onQuestionChange={onQuestionChange} />;
+    return (
+      <SlideScaler>
+        <OpenEndedSlide slide={slide} onQuestionChange={onQuestionChange} />
+      </SlideScaler>
+    );
   }
 
   if (slide.type === "qa") {
-    return <QaSlide slide={slide} onQuestionChange={onQuestionChange} />;
+    return (
+      <SlideScaler>
+        <QaSlide slide={slide} onQuestionChange={onQuestionChange} />
+      </SlideScaler>
+    );
   }
 
   return (
-    <WordCloudSlide
-      slide={slide}
-      onQuestionChange={onQuestionChange}
-      onUpdateCloudWords={onUpdateCloudWords}
-    />
+    <SlideScaler>
+      <WordCloudSlide
+        slide={slide}
+        onQuestionChange={onQuestionChange}
+        onUpdateCloudWords={onUpdateCloudWords}
+      />
+    </SlideScaler>
   );
 }

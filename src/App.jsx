@@ -6,7 +6,6 @@ import EditorArea from './components/EditorArea/EditorArea';
 import RightSidebar from './components/RightSidebar/RightSidebar';
 import BottomIcons from './components/BottomIcons/BottomIcons';
 import { MCQ_COLORS } from './palette';
-import { DEFAULT_CLOUD_WORDS } from './components/EditorArea/WordCloudSlide';
 
 const DEFAULT_MCQ_OPTIONS = () =>
   [0, 1, 2].map((i) => ({

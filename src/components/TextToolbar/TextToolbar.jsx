@@ -82,14 +82,14 @@ export default function TextToolbar({
         onClick={preventClose}
       >
         <svg width="36" height="36" viewBox="0 0 40 40">
-          {/* <circle
+          <circle
             cx="20"
             cy="20"
             r={radius}
             fill="none"
             stroke="#E8E8E8"
             strokeWidth="3"
-          /> */}
+          />
           <circle
             cx="20"
             cy="20"

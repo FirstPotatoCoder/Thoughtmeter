@@ -1,0 +1,16 @@
+.slide-scaler {
+  /* Fill all available space in main-content */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.slide-scaler-inner {
+  /* The inner div is sized to the canvas dimensions and scaled down.
+     transform-origin is center so it stays visually centered. */
+  transform-origin: center center;
+  flex-shrink: 0;
+}
