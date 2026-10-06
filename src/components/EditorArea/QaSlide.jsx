@@ -21,8 +21,8 @@ export default function QaSlide({ slide, onQuestionChange }) {
   return (
     <SlideCanvas>
       <QuestionEditor
-        initialHtml={slide.questionHtml || "Ask me anything!"}
-        placeholder="Ask me anything..."
+        initialHtml={slide.questionHtml}
+        placeholder="Ask me anything!"
         onInput={(html) => onQuestionChange(slide.id, html)}
       />
       <div
