@@ -104,21 +104,22 @@ function computeLayout(words) {
   }));
 }
 
-export default function WordCloudPreview() {
+export default function WordCloudPreview({ customWords }) {
   const [visibleCount, setVisibleCount] = useState(1);
+  const wordsToUse = customWords || POOL;
 
   useEffect(() => {
     // Add a new word sequentially to trigger the reflow physics
-    if (visibleCount < POOL.length) {
+    if (visibleCount < wordsToUse.length) {
       const timer = setTimeout(() => {
         setVisibleCount((prev) => prev + 1);
       }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [visibleCount]);
+  }, [visibleCount, wordsToUse.length]);
 
   // Only calculate physics for words that are currently on screen
-  const visibleWords = POOL.slice(0, visibleCount);
+  const visibleWords = wordsToUse.slice(0, visibleCount);
   const layoutWords = useMemo(
     () => computeLayout(visibleWords),
     [visibleWords],
