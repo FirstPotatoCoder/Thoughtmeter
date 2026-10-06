@@ -28,7 +28,8 @@
   justify-content: center;
   color: #666;
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+  z-index: 5;
 }
 
 .slide-preview:hover .thumbnail-delete-btn,

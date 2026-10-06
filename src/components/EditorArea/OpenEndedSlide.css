@@ -1,0 +1,27 @@
+.oe-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.oe-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 16px 20px 0;
+  overflow-y: auto;
+  align-items: start;
+}
+
+.oe-editor-response {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 18px 22px;
+  font-size: 16px;
+  color: #999;
+  line-height: 1.5;
+}

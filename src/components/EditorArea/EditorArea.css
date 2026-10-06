@@ -52,6 +52,19 @@
   flex-shrink: 0;
 }
 
+.oe-question-pill {
+  margin-top: 50px;
+  align-self: center;
+  background: rgba(107, 92, 255, 0.12);
+  color: #2d2d2d;
+  font-size: 26px;
+  font-weight: 600;
+  padding: 14px 36px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* Shared slide body box (word cloud, MCQ options, ...) — fills whatever
    space is left in the fixed canvas and never dictates its size. */
 .slide-body {

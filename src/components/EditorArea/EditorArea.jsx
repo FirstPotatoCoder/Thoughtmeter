@@ -3,6 +3,8 @@ import WordCloudSlide from "./WordCloudSlide";
 import McqSlide from "./McqSlide";
 import McqPreviewSlide from "./McqPreviewSlide";
 import WordCloudPreviewSlide from "./WordCloudPreviewSlide";
+import OpenEndedPreviewSlide from "./OpenEndedPreviewSlide";
+import OpenEndedSlide from "./OpenEndedSlide";
 import EmptyState from "./EmptyState";
 
 /**
@@ -25,6 +27,7 @@ export default function EditorArea({
   if (previewType) {
     if (previewType === "mcq") return <McqPreviewSlide />;
     if (previewType === "word-cloud") return <WordCloudPreviewSlide />;
+    if (previewType === "open-ended") return <OpenEndedPreviewSlide />;
   }
 
   if (isEmpty) return <EmptyState />;
@@ -39,6 +42,10 @@ export default function EditorArea({
         onDeleteOption={onDeleteOption}
       />
     );
+  }
+
+  if (slide.type === "open-ended") {
+    return <OpenEndedSlide slide={slide} onQuestionChange={onQuestionChange} />;
   }
 
   return (
