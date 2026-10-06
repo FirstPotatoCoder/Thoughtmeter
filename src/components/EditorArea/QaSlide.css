@@ -1,0 +1,32 @@
+.qa-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.qa-empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 720px;
+  user-select: none;
+}
+
+.qa-empty-heading {
+  font-size: 38px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 14px;
+  letter-spacing: -0.015em;
+}
+
+.qa-empty-subtext {
+  font-size: 18px;
+  color: #4b5563;
+  font-weight: 400;
+  line-height: 1.5;
+}

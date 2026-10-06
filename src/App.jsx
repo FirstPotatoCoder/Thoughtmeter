@@ -34,6 +34,12 @@ function App() {
             questionHtml: '',
             options: DEFAULT_MCQ_OPTIONS(),
           }
+        : type === 'qa'
+        ? {
+            id: Date.now(),
+            type,
+            questionHtml: 'Ask me anything!',
+          }
         : { id: Date.now(), type, questionHtml: '', cloudWords: [] };
     setSlides((prev) => [...prev, slide]);
     setActiveSlideId(slide.id);
@@ -98,7 +104,7 @@ function App() {
   };
 
   const handleSelectOption = (id) => {
-    if (id === 'mcq' || id === 'word-cloud' || id === 'open-ended') addSlide(id);
+    if (id === 'mcq' || id === 'word-cloud' || id === 'open-ended' || id === 'qa') addSlide(id);
   };
 
   return (
