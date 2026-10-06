@@ -102,7 +102,7 @@ export default function NewSlideMenu({ onClose, onHoverOption, onSelectOption })
             onClick={() => handleSelect(id)}
             onMouseEnter={() =>
               onHoverOption?.(
-                id === "mcq" || id === "word-cloud" || id === "open-ended"
+                id === "mcq" || id === "word-cloud" || id === "open-ended" || id === "qa"
                   ? id
                   : null
               )

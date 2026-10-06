@@ -38,7 +38,7 @@ export default function SlideThumbnail({
           </div>
         ) : (
           <span className="thumb-question">
-            {questionText || 'What word comes to mind...'}
+            {questionText || (type === 'qa' ? 'Ask me anything!' : 'What word comes to mind...')}
           </span>
         )}
         <span className="slide-label">MP</span>
