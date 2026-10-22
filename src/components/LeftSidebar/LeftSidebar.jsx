@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './LeftSidebar.css';
 import SlideThumbnail from '../SlideThumbnail/SlideThumbnail';
 import NewSlideMenu from './NewSlideMenu';
+import { setSlideDeck } from '../../utils/slideSettings';
 
 export default function LeftSidebar({
   onPreviewSlide,
@@ -12,6 +13,10 @@ export default function LeftSidebar({
   onDeleteSlide,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setSlideDeck(slides);
+  }, [slides]);
 
   const toggleMenu = () => {
     if (menuOpen) {

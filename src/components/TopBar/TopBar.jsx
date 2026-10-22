@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './TopBar.css';
 import Icon from '../Icon/Icon';
+import { getSlideDeck, subscribeSlideSettings } from '../../utils/slideSettings';
 
 export default function TopBar({ onPreview }) {
   const [activeTab, setActiveTab] = useState('create');
+  const [deck, setDeck] = useState(getSlideDeck);
+
+  useEffect(() => {
+    return subscribeSlideSettings(() => setDeck(getSlideDeck()));
+  }, []);
+
+  const isDeckEmpty = deck.length === 0;
 
   return (
     <header className="top-bar">
@@ -49,8 +57,20 @@ export default function TopBar({ onPreview }) {
         <button className="icon-btn-icon" title="Share">
           <Icon name="share" size={18} />
         </button>
-        <button className="btn-preview" onClick={onPreview}>Preview</button>
-        <button className="btn-start-presentation">
+        <button
+          className="btn-preview"
+          disabled={isDeckEmpty}
+          onClick={onPreview}
+          title={isDeckEmpty ? "Add a slide to preview" : "Preview"}
+        >
+          Preview
+        </button>
+        <button
+          className="btn-start-presentation"
+          disabled={isDeckEmpty}
+          onClick={onPreview}
+          title={isDeckEmpty ? "Add a slide to start presentation" : "Start presentation"}
+        >
           Start presentation
           <Icon name="chevronDown" />
         </button>
