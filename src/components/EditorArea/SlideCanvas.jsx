@@ -1,3 +1,4 @@
+import Icon from "../Icon/Icon";
 import "./EditorArea.css";
 
 /**
@@ -12,7 +13,9 @@ export default function SlideCanvas({ children }) {
         <span className="logo-text">Mentimeter</span>
       </div>
       {children}
-      <button className="thumbs-up-btn" title="Thumbs up" />
+      <button className="thumbs-up-btn" title="Thumbs up">
+        <Icon name="thumbsUp" size={20} />
+      </button>
     </div>
   );
 }
