@@ -5,6 +5,7 @@ import LeftSidebar from './components/LeftSidebar/LeftSidebar';
 import EditorArea from './components/EditorArea/EditorArea';
 import RightSidebar from './components/RightSidebar/RightSidebar';
 import BottomIcons from './components/BottomIcons/BottomIcons';
+import PresentationPreview from './components/PresentationPreview/PresentationPreview';
 import { MCQ_COLORS } from './palette';
 
 const DEFAULT_MCQ_OPTIONS = () =>
@@ -21,6 +22,7 @@ function App() {
   const [previewType, setPreviewType] = useState(null);
   const [slides, setSlides] = useState([]);
   const [activeSlideId, setActiveSlideId] = useState(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const activeSlide = slides.find((s) => s.id === activeSlideId);
 
@@ -102,7 +104,7 @@ function App() {
 
   return (
     <div className="app">
-      <TopBar />
+      <TopBar onPreview={() => setIsPreviewOpen(true)} />
       <div className="app-body">
         <LeftSidebar
           onPreviewSlide={setPreviewType}
@@ -134,6 +136,9 @@ function App() {
         </main>
         <RightSidebar />
       </div>
+      {isPreviewOpen && (
+        <PresentationPreview slide={activeSlide} onClose={() => setIsPreviewOpen(false)} />
+      )}
     </div>
   );
 }

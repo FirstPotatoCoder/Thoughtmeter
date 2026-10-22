@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './TopBar.css';
 import Icon from '../Icon/Icon';
 
-export default function TopBar() {
+export default function TopBar({ onPreview }) {
   const [activeTab, setActiveTab] = useState('create');
 
   return (
@@ -49,7 +49,7 @@ export default function TopBar() {
         <button className="icon-btn-icon" title="Share">
           <Icon name="share" size={18} />
         </button>
-        <button className="btn-preview">Preview</button>
+        <button className="btn-preview" onClick={onPreview}>Preview</button>
         <button className="btn-start-presentation">
           Start presentation
           <Icon name="chevronDown" />
