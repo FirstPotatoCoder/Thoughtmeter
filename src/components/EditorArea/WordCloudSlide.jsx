@@ -105,7 +105,7 @@ export default function WordCloudSlide({
 
   // Seed initial data when slide has none
   useEffect(() => {
-    if (cloudWords.length === 0 && slide.cloudWords === undefined) {
+    if (cloudWords.length === 0 && (!slide.cloudWords || slide.cloudWords.length === 0)) {
       const initial = getWordCloudData();
       setCloudWords(initial);
       // Persist to the slide object so it's not lost on re-render

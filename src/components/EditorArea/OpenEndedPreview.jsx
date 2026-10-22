@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import "./OpenEndedPreview.css";
 
 const RESPONSES = [
@@ -22,14 +21,15 @@ const RESPONSES = [
 
 export default function OpenEndedPreview() {
   // Partition into three columns to allow independent heights
-  const leftColumn = RESPONSES.filter((_, i) => i % 3 === 0);
-  const middleColumn = RESPONSES.filter((_, i) => i % 3 === 1);
-  const rightColumn = RESPONSES.filter((_, i) => i % 3 === 2);
+  // while maintaining the left-center-right sequential order
+  const col1 = RESPONSES.filter((_, i) => i % 3 === 0);
+  const col2 = RESPONSES.filter((_, i) => i % 3 === 1);
+  const col3 = RESPONSES.filter((_, i) => i % 3 === 2);
 
   return (
     <div className="open-ended-preview">
       <div className="oe-column">
-        {leftColumn.map((text, index) => {
+        {col1.map((text, index) => {
           const originalIndex = index * 3;
           return (
             <div
@@ -44,7 +44,7 @@ export default function OpenEndedPreview() {
       </div>
 
       <div className="oe-column">
-        {middleColumn.map((text, index) => {
+        {col2.map((text, index) => {
           const originalIndex = index * 3 + 1;
           return (
             <div
@@ -59,7 +59,7 @@ export default function OpenEndedPreview() {
       </div>
 
       <div className="oe-column">
-        {rightColumn.map((text, index) => {
+        {col3.map((text, index) => {
           const originalIndex = index * 3 + 2;
           return (
             <div
