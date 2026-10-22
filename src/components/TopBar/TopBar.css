@@ -146,8 +146,15 @@
   font-weight: 500;
 }
 
-.btn-preview:hover {
+.btn-preview:hover:not(:disabled) {
   background: #F8F8F8;
+}
+
+.btn-preview:disabled,
+.btn-start-presentation:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .btn-start-presentation {
@@ -164,6 +171,6 @@
   gap: 6px;
 }
 
-.btn-start-presentation:hover {
+.btn-start-presentation:hover:not(:disabled) {
   background: #5A4BE0;
 }

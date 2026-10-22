@@ -19,18 +19,56 @@ export default function McqSlide({
   const [selectedId, setSelectedId] = useState(null);
   const [colorPickerFor, setColorPickerFor] = useState(null);
   const [labelEditingId, setLabelEditingId] = useState(null);
+  const labelEditingIdRef = useRef(null);
+  const latestTextRef = useRef({});
+  const slideRef = useRef(slide);
+  slideRef.current = slide;
+  const onUpdateOptionRef = useRef(onUpdateOption);
+  onUpdateOptionRef.current = onUpdateOption;
   const labelRefs = useRef({});
   const optionsRef = useRef(null);
 
   // Selected option no longer exists (e.g. was deleted) -> nothing selected.
   const selected = options.some((o) => o.id === selectedId) ? selectedId : null;
 
-  // Clicking outside the options area deselects (and ends label editing).
+  const commitLabel = (optionId, element) => {
+    if (!optionId) return;
+    const raw = element ? element.textContent : (latestTextRef.current[optionId] ?? "");
+    const label = (raw || "").trim();
+    if (element && element.textContent !== label) {
+      element.textContent = label; // normalize (strips pasted rich-text tags)
+    }
+    latestTextRef.current[optionId] = label;
+    onUpdateOptionRef.current(slideRef.current.id, optionId, { label });
+    labelEditingIdRef.current = null;
+    setLabelEditingId(null);
+  };
+
+  // Auto-select and start editing when a new option is added
+  const prevOptionsLengthRef = useRef(options.length);
+  useEffect(() => {
+    if (options.length > prevOptionsLengthRef.current) {
+      const newOption = options[options.length - 1];
+      if (newOption) {
+        setSelectedId(newOption.id);
+        startLabelEdit(newOption.id);
+      }
+    }
+    prevOptionsLengthRef.current = options.length;
+  }, [options]);
+
+  // Clicking outside the options area deselects (and commits any active label editing).
   useEffect(() => {
     const onDocMouseDown = (e) => {
       if (optionsRef.current && !optionsRef.current.contains(e.target)) {
+        if (labelEditingIdRef.current) {
+          const activeId = labelEditingIdRef.current;
+          const el = labelRefs.current[activeId];
+          commitLabel(activeId, el);
+        }
         setSelectedId(null);
         setLabelEditingId(null);
+        labelEditingIdRef.current = null;
         setColorPickerFor(null);
       }
     };
@@ -38,9 +76,23 @@ export default function McqSlide({
     return () => document.removeEventListener("mousedown", onDocMouseDown);
   }, []);
 
+  // When unmounting (e.g. preview opened), commit any pending label change
+  useEffect(() => {
+    return () => {
+      if (labelEditingIdRef.current) {
+        const activeId = labelEditingIdRef.current;
+        const el = labelRefs.current[activeId];
+        const raw = el ? el.textContent : (latestTextRef.current[activeId] ?? "");
+        const label = (raw || "").trim();
+        onUpdateOptionRef.current(slideRef.current.id, activeId, { label });
+      }
+    };
+  }, []);
+
   // Clicking an option starts label editing immediately and selects all
   // existing text, so typing overwrites it instead of appending.
   const startLabelEdit = (optionId) => {
+    labelEditingIdRef.current = optionId;
     setLabelEditingId(optionId);
     requestAnimationFrame(() => {
       const el = labelRefs.current[optionId];
@@ -55,17 +107,14 @@ export default function McqSlide({
   };
 
   const handleOptionClick = (optionId) => {
+    if (labelEditingIdRef.current && labelEditingIdRef.current !== optionId) {
+      const activeId = labelEditingIdRef.current;
+      const el = labelRefs.current[activeId];
+      commitLabel(activeId, el);
+    }
     setSelectedId(optionId);
     setColorPickerFor(null);
     startLabelEdit(optionId);
-  };
-
-  const commitLabel = (optionId, element) => {
-    // '' keeps the CSS placeholder ("Option") showing.
-    const label = element.textContent.trim();
-    element.textContent = label; // normalize (strips pasted rich-text tags)
-    onUpdateOption(slide.id, optionId, { label });
-    setLabelEditingId(null);
   };
 
   return (
@@ -104,8 +153,13 @@ export default function McqSlide({
                       if (el.textContent.length === 0 && el.innerHTML !== "") {
                         el.innerHTML = "";
                       }
+                      latestTextRef.current[option.id] = el.textContent;
                     }}
-                    onBlur={(e) => commitLabel(option.id, e.currentTarget)}
+                    onBlur={(e) => {
+                      if (labelEditingIdRef.current === option.id) {
+                        commitLabel(option.id, e.currentTarget);
+                      }
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -123,6 +177,11 @@ export default function McqSlide({
                       title="Add option"
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (labelEditingIdRef.current) {
+                          const activeId = labelEditingIdRef.current;
+                          const el = labelRefs.current[activeId];
+                          commitLabel(activeId, el);
+                        }
                         onAddOption(slide.id);
                       }}
                     >
@@ -171,7 +230,13 @@ export default function McqSlide({
                       className="mcq-toolbar-btn"
                       title="Delete option"
                       disabled={options.length <= MIN_OPTIONS}
-                      onClick={() => onDeleteOption(slide.id, option.id)}
+                      onClick={() => {
+                        if (labelEditingIdRef.current === option.id) {
+                          labelEditingIdRef.current = null;
+                          setLabelEditingId(null);
+                        }
+                        onDeleteOption(slide.id, option.id);
+                      }}
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M3 6h18" />

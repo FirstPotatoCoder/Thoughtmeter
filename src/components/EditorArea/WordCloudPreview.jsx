@@ -54,7 +54,8 @@ function computeLayout(words) {
 
   for (const w of sorted) {
     ctx.font = `500 ${w.size}px system-ui, sans-serif`;
-    const metrics = ctx.measureText(w.text);
+    const text = (w.text || '').toLowerCase();
+    const metrics = ctx.measureText(text);
 
     // Add small padding to prevent words from literally touching[cite: 6]
     const width = metrics.width + 12;
@@ -105,10 +106,14 @@ function computeLayout(words) {
 }
 
 export default function WordCloudPreview({ customWords }) {
-  const [visibleCount, setVisibleCount] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(() => (customWords ? customWords.length : 1));
   const wordsToUse = customWords || POOL;
 
   useEffect(() => {
+    if (customWords) {
+      setVisibleCount(customWords.length);
+      return;
+    }
     // Add a new word sequentially to trigger the reflow physics
     if (visibleCount < wordsToUse.length) {
       const timer = setTimeout(() => {
@@ -116,10 +121,10 @@ export default function WordCloudPreview({ customWords }) {
       }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [visibleCount, wordsToUse.length]);
+  }, [visibleCount, wordsToUse.length, customWords]);
 
   // Only calculate physics for words that are currently on screen
-  const visibleWords = wordsToUse.slice(0, visibleCount);
+  const visibleWords = customWords ? wordsToUse : wordsToUse.slice(0, visibleCount);
   const layoutWords = useMemo(
     () => computeLayout(visibleWords),
     [visibleWords],
@@ -139,7 +144,7 @@ export default function WordCloudPreview({ customWords }) {
             color: w.color,
           }}
         >
-          <span className="wc-word-pop">{w.text}</span>
+          <span className="wc-word-pop">{w.text.toLowerCase()}</span>
         </span>
       ))}
     </div>

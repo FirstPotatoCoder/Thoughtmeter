@@ -5,14 +5,14 @@ import "./SlideScaler.css";
 const CANVAS_W = 1458;
 const CANVAS_H = 820;
 // Padding around the canvas inside the container.
-const PAD = 40;
+const DEFAULT_PAD = 40;
 
 /**
  * Wraps a fixed-size slide canvas and scales it down (via CSS transform)
  * to fit its parent container. Never scales *up* past 1.0 so the canvas
  * always looks crisp on large displays.
  */
-export default function SlideScaler({ children }) {
+export default function SlideScaler({ children, pad = DEFAULT_PAD }) {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
 
@@ -22,15 +22,15 @@ export default function SlideScaler({ children }) {
 
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
-      const availW = width - PAD * 2;
-      const availH = height - PAD * 2;
+      const availW = width - pad * 2;
+      const availH = height - pad * 2;
       const s = Math.min(availW / CANVAS_W, availH / CANVAS_H, 1);
       setScale(Math.max(s, 0.15)); // floor at 15% so it never vanishes
     });
 
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [pad]);
 
   return (
     <div ref={containerRef} className="slide-scaler">

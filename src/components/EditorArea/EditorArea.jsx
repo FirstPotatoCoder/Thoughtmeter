@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import "./EditorArea.css";
 import WordCloudSlide from "./WordCloudSlide";
 import McqSlide from "./McqSlide";
@@ -9,6 +10,12 @@ import QaPreviewSlide from "./QaPreviewSlide";
 import QaSlide from "./QaSlide";
 import EmptyState from "./EmptyState";
 import SlideScaler from "./SlideScaler";
+import {
+  setActiveSlide,
+  setSlideDeck,
+  updateActiveSlideDirect,
+  updateSlideDeckDirect,
+} from "../../utils/slideSettings";
 
 /**
  * Renders the active slide in the fixed-size canvas.
@@ -28,6 +35,15 @@ export default function EditorArea({
   onDeleteOption,
   onUpdateCloudWords,
 }) {
+  // Keep slide settings store synchronously up to date
+  updateActiveSlideDirect(slide);
+  updateSlideDeckDirect(slides);
+
+  useEffect(() => {
+    setActiveSlide(slide);
+    setSlideDeck(slides);
+  }, [slide, slides]);
+
   const isEmpty = !slide || slides.length === 0;
 
   if (previewType) {

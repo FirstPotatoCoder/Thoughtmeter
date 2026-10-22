@@ -1,22 +1,40 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { MCQ_COLORS } from "../../palette";
 import "./McqPreview.css";
 
-const BARS = [
+const DEFAULT_BARS = [
   { label: "Option", color: "#6B7AE6" },
   { label: "Option", color: "#E8695F" },
   { label: "Option", color: "#3C4580" },
 ];
 
-const INITIAL_COUNTS = [5, 7, 6];
+const INITIAL_COUNTS = [5, 7, 6, 4, 3, 5];
 
 // Tallest bar uses up to this % of the available area so the
 // count label above it always fits.
-const MAX_HEIGHT_PCT = 78;
+const MAX_HEIGHT_PCT = 72;
 const MIN_COUNT = 1;
 const MAX_COUNT = 9;
 
-export default function McqPreview() {
-  const [counts, setCounts] = useState(INITIAL_COUNTS);
+export default function McqPreview({ options: propOptions }) {
+  const bars = useMemo(() => {
+    if (propOptions && propOptions.length > 0) {
+      return propOptions.map((opt, i) => ({
+        label: opt.label || 'Option',
+        color: opt.color || MCQ_COLORS[i % MCQ_COLORS.length],
+      }));
+    }
+    return DEFAULT_BARS;
+  }, [propOptions]);
+
+  const [counts, setCounts] = useState(() =>
+    bars.map((_, i) => INITIAL_COUNTS[i % INITIAL_COUNTS.length])
+  );
+
+  useEffect(() => {
+    setCounts(bars.map((_, i) => INITIAL_COUNTS[i % INITIAL_COUNTS.length]));
+  }, [bars]);
+
   // Bars render at 0 height first, then "grow" on the next frame so the
   // CSS transition animates them up. Count labels are positioned from
   // `counts` immediately, so they never move during the initial grow.
@@ -45,11 +63,11 @@ export default function McqPreview() {
     return () => clearTimeout(timeout);
   }, []);
 
-  const maxCount = Math.max(...counts);
+  const maxCount = Math.max(...counts, 1);
 
   return (
-    <div className="mcq-preview">
-      {BARS.map((bar, index) => {
+    <div className={`mcq-preview ${bars.length > 4 ? "dense" : ""}`}>
+      {bars.map((bar, index) => {
         const targetPct = (counts[index] / maxCount) * MAX_HEIGHT_PCT;
         const barPct = grown ? targetPct : 0;
         return (
