@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import TopBar from './components/TopBar/TopBar';
 import LeftSidebar from './components/LeftSidebar/LeftSidebar';
@@ -7,24 +7,61 @@ import RightSidebar from './components/RightSidebar/RightSidebar';
 import BottomIcons from './components/BottomIcons/BottomIcons';
 import PresentationPreview from './components/PresentationPreview/PresentationPreview';
 import { MCQ_COLORS } from './palette';
+import {
+  loadAllDecks,
+  getActiveDeck,
+  saveDeck,
+  createNewDeck,
+  setActiveDeckId,
+  renameDeck,
+  deleteDeck,
+  duplicateDeck,
+  importDeckFromJson,
+} from './utils/deckStorage';
+import { setSlideDeck } from './utils/slideSettings';
 
 const DEFAULT_MCQ_OPTIONS = () =>
   [0, 1, 2].map((i) => ({
     id: Date.now() + i,
-    // '' = empty; the label renders the "Option" placeholder via CSS.
     label: '',
     color: MCQ_COLORS[i],
   }));
 
 function App() {
-  // Slide type being previewed in the canvas (e.g. 'mcq' while hovering
-  // the MCQ button in the New slide menu). null = the actual slide.
+  // Deck state loaded from localStorage
+  const [allDecks, setAllDecks] = useState(() => loadAllDecks());
+  const [deck, setDeck] = useState(() => getActiveDeck());
+  const slides = deck.slides || [];
+
+  const [activeSlideId, setActiveSlideId] = useState(() => slides[0]?.id || null);
   const [previewType, setPreviewType] = useState(null);
-  const [slides, setSlides] = useState([]);
-  const [activeSlideId, setActiveSlideId] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
+  // Sync slides to slideSettings engine
+  useEffect(() => {
+    setSlideDeck(slides);
+  }, [slides]);
+
+  // Ensure activeSlideId is valid when slides change
+  useEffect(() => {
+    if (slides.length > 0 && (!activeSlideId || !slides.some((s) => s.id === activeSlideId))) {
+      setActiveSlideId(slides[0].id);
+    }
+  }, [slides, activeSlideId]);
+
   const activeSlide = slides.find((s) => s.id === activeSlideId);
+
+  // Helper updater that auto-saves slides to localStorage
+  const setSlides = (updater) => {
+    setDeck((prevDeck) => {
+      const currentSlides = prevDeck.slides || [];
+      const nextSlides = typeof updater === 'function' ? updater(currentSlides) : updater;
+      const updatedDeck = { ...prevDeck, slides: nextSlides };
+      saveDeck(updatedDeck);
+      setAllDecks(loadAllDecks());
+      return updatedDeck;
+    });
+  };
 
   const addSlide = (type) => {
     const slide =
@@ -99,12 +136,74 @@ function App() {
   };
 
   const handleSelectOption = (id) => {
-    if (id === 'mcq' || id === 'word-cloud' || id === 'open-ended' || id === 'qa') addSlide(id);
+    if (id === 'mcq' || id === 'word-cloud' || id === 'open-ended' || id === 'qa') {
+      addSlide(id);
+    }
+  };
+
+  // Deck Management Handlers
+  const handleRenameDeck = (newTitle) => {
+    const updated = renameDeck(deck.id, newTitle);
+    if (updated) {
+      setDeck(updated);
+      setAllDecks(loadAllDecks());
+    }
+  };
+
+  const handleSwitchDeck = (newDeckId) => {
+    setActiveDeckId(newDeckId);
+    const target = getActiveDeck();
+    setDeck(target);
+    setActiveSlideId(target.slides?.[0]?.id || null);
+    setAllDecks(loadAllDecks());
+  };
+
+  const handleCreateDeck = () => {
+    const created = createNewDeck();
+    setDeck(created);
+    setActiveSlideId(null);
+    setAllDecks(loadAllDecks());
+  };
+
+  const handleDuplicateDeck = (deckId) => {
+    const copy = duplicateDeck(deckId);
+    if (copy) {
+      setDeck(copy);
+      setActiveSlideId(copy.slides?.[0]?.id || null);
+      setAllDecks(loadAllDecks());
+    }
+  };
+
+  const handleDeleteDeck = (deckId) => {
+    deleteDeck(deckId);
+    const active = getActiveDeck();
+    setDeck(active);
+    setActiveSlideId(active.slides?.[0]?.id || null);
+    setAllDecks(loadAllDecks());
+  };
+
+  const handleImportDeck = (jsonString) => {
+    const imported = importDeckFromJson(jsonString);
+    setDeck(imported);
+    setActiveSlideId(imported.slides?.[0]?.id || null);
+    setAllDecks(loadAllDecks());
   };
 
   return (
     <div className="app">
-      <TopBar onPreview={() => setIsPreviewOpen(true)} />
+      <TopBar
+        deckTitle={deck.title}
+        currentDeckId={deck.id}
+        allDecks={allDecks}
+        onRenameDeck={handleRenameDeck}
+        onSwitchDeck={handleSwitchDeck}
+        onCreateDeck={handleCreateDeck}
+        onDuplicateDeck={handleDuplicateDeck}
+        onDeleteDeck={handleDeleteDeck}
+        onImportDeck={handleImportDeck}
+        onPreview={() => setIsPreviewOpen(true)}
+      />
+
       <div className="app-body">
         <LeftSidebar
           onPreviewSlide={setPreviewType}
@@ -136,6 +235,7 @@ function App() {
         </main>
         <RightSidebar />
       </div>
+
       {isPreviewOpen && (
         <PresentationPreview slide={activeSlide} onClose={() => setIsPreviewOpen(false)} />
       )}

@@ -34,20 +34,245 @@
 .title-section {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .title-section .title {
   font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #1A1A1A;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title-section .title:hover {
+  background: #F4F4F5;
+}
+
+.title-input {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  border: 1px solid #5064E7;
+  border-radius: 4px;
+  padding: 1px 5px;
+  outline: none;
+  font-family: inherit;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(80, 100, 231, 0.18);
+  width: 190px;
 }
 
 .title-section .subtitle {
   font-size: 11px;
-  color: #888;
+  color: #71717A;
   display: flex;
   align-items: center;
   gap: 4px;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  width: fit-content;
+}
+
+.title-section .subtitle:hover,
+.title-section .subtitle.active {
+  color: #18181B;
+  background: #E4E4E7;
+}
+
+/* Decks Switcher Dropdown */
+.deck-switcher-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 320px;
+  max-height: 400px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #E4E4E7;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: deckDropdownFade 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes deckDropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.deck-dropdown-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid #F4F4F5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FAFAFA;
+}
+
+.deck-dropdown-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #71717A;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.deck-dropdown-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deck-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+
+.deck-action-btn.primary {
+  background: #5064E7;
+  color: #FFFFFF;
+}
+
+.deck-action-btn.primary:hover {
+  background: #4053D6;
+}
+
+.deck-action-btn.secondary {
+  background: #E4E4E7;
+  color: #27272A;
+}
+
+.deck-action-btn.secondary:hover {
+  background: #D4D4D8;
+}
+
+.deck-dropdown-list {
+  padding: 6px 0;
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.deck-dropdown-item {
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 8px;
+}
+
+.deck-dropdown-item:hover {
+  background: #F4F4F5;
+}
+
+.deck-dropdown-item.active {
+  background: #EEF0FE;
+}
+
+.deck-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.deck-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.deck-active-check {
+  color: #5064E7;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.deck-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #18181B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deck-dropdown-item.active .deck-item-title {
+  font-weight: 600;
+  color: #384BD1;
+}
+
+.deck-item-meta {
+  font-size: 11px;
+  color: #A1A1AA;
+  margin-top: 1px;
+}
+
+.deck-item-buttons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.deck-dropdown-item:hover .deck-item-buttons {
+  opacity: 1;
+}
+
+.deck-icon-btn {
+  background: transparent;
+  border: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #71717A;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+}
+
+.deck-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #18181B;
+}
+
+.deck-icon-btn.danger:hover {
+  background: #FEE2E2;
+  color: #DC2626;
 }
 
 .top-bar-center {
