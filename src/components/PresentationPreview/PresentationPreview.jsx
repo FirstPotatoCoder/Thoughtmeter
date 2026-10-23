@@ -291,6 +291,15 @@ export default function PresentationPreview({
     return `${p1} ${p2}`;
   });
 
+  // Generate dynamic join URL pointing to our mobile join route
+  const cleanJoinCode = joinCode.replace(/\s+/g, '');
+  const basePath = typeof window !== 'undefined'
+    ? window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '')
+    : '';
+  const dynamicJoinUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}${basePath}/#/join/${cleanJoinCode}`
+    : `https://menti.com/${cleanJoinCode}`;
+
   const currentSlide = deck[currentSlideIndex] || deck[0];
   const slideTitle = currentSlide?.questionHtml ? currentSlide.questionHtml.replace(/<[^>]*>/g, '').trim() : '';
 
@@ -1111,7 +1120,7 @@ export default function PresentationPreview({
             </button>
             <div className="qr-code-placeholder pres-qr-code-wrapper">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=560x560&data=https://menti.com/${joinCode.replace(/\s+/g, '')}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=560x560&data=${encodeURIComponent(dynamicJoinUrl)}`}
                 alt="QR Code"
                 width="280"
                 height="280"
@@ -1274,7 +1283,7 @@ export default function PresentationPreview({
                         </button>
                         <div className="qr-code-placeholder">
                           <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https://menti.com/${joinCode.replace(/\s+/g, '')}`}
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(dynamicJoinUrl)}`}
                             alt="QR Code"
                             width="180"
                             height="180"

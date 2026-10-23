@@ -19,6 +19,8 @@ import {
   importDeckFromJson,
 } from './utils/deckStorage';
 import { setSlideDeck } from './utils/slideSettings';
+import { useHashRoute } from './utils/useHashRoute';
+import ParticipantMobileView from './components/ParticipantMobileView/ParticipantMobileView';
 
 const DEFAULT_MCQ_OPTIONS = () =>
   [0, 1, 2].map((i) => ({
@@ -28,6 +30,8 @@ const DEFAULT_MCQ_OPTIONS = () =>
   }));
 
 function App() {
+  const { route, roomCode } = useHashRoute();
+
   // Deck state loaded from localStorage
   const [allDecks, setAllDecks] = useState(() => loadAllDecks());
   const [deck, setDeck] = useState(() => getActiveDeck());
@@ -188,6 +192,10 @@ function App() {
     setActiveSlideId(imported.slides?.[0]?.id || null);
     setAllDecks(loadAllDecks());
   };
+
+  if (route === 'join') {
+    return <ParticipantMobileView roomCode={roomCode} />;
+  }
 
   return (
     <div className="app">
