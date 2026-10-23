@@ -1853,11 +1853,12 @@
 
 .host-slide.pres-slide .wc-preview {
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-origin: left center;
+  transform-origin: center center;
 }
 
 .host-slide.pres-slide.without-qr .wc-preview {
   transform: scale(1.25);
+  transform-origin: center center;
 }
 
 .host-slide.pres-slide .qa-empty-state {
