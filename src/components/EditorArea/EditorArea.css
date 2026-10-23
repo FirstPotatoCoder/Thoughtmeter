@@ -88,17 +88,12 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  cursor: pointer;
+  cursor: default;
   padding: 0;
   overflow: visible;
-  transition: border-color 0.15s ease;
   margin-top: 35px;
   margin-bottom: 45px;
   min-height: 0;
-}
-
-.slide-body:hover {
-  border-color: rgba(107, 92, 255, 0.3);
 }
 
 .slide-body.selected {

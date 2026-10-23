@@ -1,4 +1,3 @@
-import Icon from "../Icon/Icon";
 import "./EmptyState.css";
 
 export default function EmptyState() {
@@ -14,9 +13,6 @@ export default function EmptyState() {
           Click <strong>+ New slide</strong> to create your first interactive question
         </p>
       </div>
-      <button className="thumbs-up-btn" title="Thumbs up">
-        <Icon name="thumbsUp" size={20} />
-      </button>
     </div>
   );
 }

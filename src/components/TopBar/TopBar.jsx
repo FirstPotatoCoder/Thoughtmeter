@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './TopBar.css';
 import Icon from '../Icon/Icon';
-import { getSlideDeck, subscribeSlideSettings } from '../../utils/slideSettings';
+import { getSlideDeck, subscribeSlideSettings, setViewMode } from '../../utils/slideSettings';
 
 export default function TopBar({ onPreview }) {
   const [activeTab, setActiveTab] = useState('create');
@@ -12,6 +12,16 @@ export default function TopBar({ onPreview }) {
   }, []);
 
   const isDeckEmpty = deck.length === 0;
+
+  const handleOpenPreview = () => {
+    setViewMode('preview');
+    onPreview?.();
+  };
+
+  const handleStartPresentation = () => {
+    setViewMode('presentation');
+    onPreview?.();
+  };
 
   return (
     <header className="top-bar">
@@ -48,19 +58,11 @@ export default function TopBar({ onPreview }) {
       </nav>
 
       <div className="top-bar-right">
-        <div className="avatar-group">
-          <div className="avatar">MP</div>
-          <button className="plus-btn" title="Add">
-            <Icon name="plus" />
-          </button>
-        </div>
-        <button className="icon-btn-icon" title="Share">
-          <Icon name="share" size={18} />
-        </button>
+        <div className="avatar">MP</div>
         <button
           className="btn-preview"
           disabled={isDeckEmpty}
-          onClick={onPreview}
+          onClick={handleOpenPreview}
           title={isDeckEmpty ? "Add a slide to preview" : "Preview"}
         >
           Preview
@@ -68,7 +70,7 @@ export default function TopBar({ onPreview }) {
         <button
           className="btn-start-presentation"
           disabled={isDeckEmpty}
-          onClick={onPreview}
+          onClick={handleStartPresentation}
           title={isDeckEmpty ? "Add a slide to start presentation" : "Start presentation"}
         >
           Start presentation

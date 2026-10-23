@@ -10,11 +10,8 @@ import {
   getDefaultMaxResponses,
 } from '../../utils/slideSettings';
 
-const ICONS = ['sparkle', 'pencil', 'chat', 'hand', 'presentation', 'slides'];
-const TITLES = ['AI Suggestions', 'Edit', 'Comments', 'Raise Hand', 'Present', 'Slides'];
-
 export default function RightSidebar() {
-  const [activeIcon, setActiveIcon] = useState(1); // Open 'Edit' by default so user sees the new settings drawer
+  const [isEditOpen, setIsEditOpen] = useState(false); // Closed by default
   const [activeSlide, setActiveSlideState] = useState(getActiveSlide());
   const [, setTick] = useState(0);
 
@@ -25,10 +22,6 @@ export default function RightSidebar() {
     });
     return unsub;
   }, []);
-
-  const handleIconClick = (index) => {
-    setActiveIcon((prev) => (prev === index ? null : index));
-  };
 
   const slideType = activeSlide?.type;
   const slideId = activeSlide?.id;
@@ -79,8 +72,8 @@ export default function RightSidebar() {
 
   return (
     <div className="right-sidebar-wrapper">
-      {/* Slide Settings Inspector Drawer (Option A: Opens when Edit/pencil is active) */}
-      {activeIcon === 1 && (
+      {/* Slide Settings Inspector Drawer (Opens when Edit/pencil is active) */}
+      {isEditOpen && (
         <aside className="slide-inspector-drawer">
           <div className="inspector-header">
             <div className="inspector-header-left">
@@ -89,7 +82,7 @@ export default function RightSidebar() {
             </div>
             <button
               className="inspector-close-btn"
-              onClick={() => setActiveIcon(null)}
+              onClick={() => setIsEditOpen(false)}
               title="Close settings"
             >
               ×
@@ -151,15 +144,12 @@ export default function RightSidebar() {
 
       {/* Right Sidebar Vertical Icon Strip */}
       <aside className="right-sidebar">
-        {ICONS.map((icon, index) => (
-          <IconButton
-            key={icon}
-            icon={icon}
-            active={index === activeIcon}
-            title={TITLES[index]}
-            onClick={() => handleIconClick(index)}
-          />
-        ))}
+        <IconButton
+          icon="pencil"
+          active={isEditOpen}
+          title="Edit"
+          onClick={() => setIsEditOpen((prev) => !prev)}
+        />
       </aside>
     </div>
   );

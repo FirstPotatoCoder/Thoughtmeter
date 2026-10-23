@@ -12,7 +12,7 @@ const DEFAULT_PAD = 40;
  * to fit its parent container. Never scales *up* past 1.0 so the canvas
  * always looks crisp on large displays.
  */
-export default function SlideScaler({ children, pad = DEFAULT_PAD }) {
+export default function SlideScaler({ children, pad = DEFAULT_PAD, maxScale = 1 }) {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
 
@@ -24,13 +24,13 @@ export default function SlideScaler({ children, pad = DEFAULT_PAD }) {
       const { width, height } = entry.contentRect;
       const availW = width - pad * 2;
       const availH = height - pad * 2;
-      const s = Math.min(availW / CANVAS_W, availH / CANVAS_H, 1);
+      const s = Math.min(availW / CANVAS_W, availH / CANVAS_H, maxScale);
       setScale(Math.max(s, 0.15)); // floor at 15% so it never vanishes
     });
 
     ro.observe(el);
     return () => ro.disconnect();
-  }, [pad]);
+  }, [pad, maxScale]);
 
   return (
     <div ref={containerRef} className="slide-scaler">

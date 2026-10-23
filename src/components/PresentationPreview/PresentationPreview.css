@@ -1538,3 +1538,600 @@
   line-height: 1.4;
   margin: 0;
 }
+
+/* =========================================================
+   Start Presentation Mode (Full-screen presentation view)
+   Matching images/image.png and images/image2.png
+   ========================================================= */
+
+.presentation-mode-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #FFFFFF;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+.pres-stage-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.host-slide.pres-slide {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 60px 80px 80px;
+  background: #FFFFFF;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.host-slide.pres-slide .slide-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.host-slide.pres-slide.with-qr .slide-body {
+  width: calc(100% - 320px);
+}
+
+.host-slide.pres-slide.without-qr .slide-body {
+  width: 100%;
+}
+
+.host-slide.pres-slide .host-slide-title-wrapper {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: left;
+  transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.host-slide.pres-slide.with-qr .host-slide-title-wrapper {
+  max-width: calc(100% - 340px);
+}
+
+.host-slide.pres-slide.without-qr .host-slide-title-wrapper {
+  max-width: 90%;
+}
+
+.host-slide.pres-slide .host-slide-title {
+  font-size: 54px;
+  font-weight: 500;
+  color: #111827;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  margin: 0;
+  transition: font-size 0.35s ease;
+}
+
+.host-slide.pres-slide.without-qr .host-slide-title {
+  font-size: 56px;
+}
+
+.host-slide.pres-slide .mcq-unsent-preview,
+.host-slide.pres-slide .mcq-sent-preview,
+.host-slide.pres-slide .mcq-preview {
+  display: flex;
+  align-items: flex-end;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.35s ease,
+              gap 0.35s ease;
+}
+
+.host-slide.pres-slide.with-qr .mcq-unsent-preview,
+.host-slide.pres-slide.with-qr .mcq-sent-preview,
+.host-slide.pres-slide.with-qr .mcq-preview {
+  width: 100%;
+  max-width: 1020px;
+  height: 360px;
+  gap: 16px;
+  margin: 0 auto 0 0;
+}
+
+.host-slide.pres-slide.without-qr .mcq-unsent-preview,
+.host-slide.pres-slide.without-qr .mcq-sent-preview,
+.host-slide.pres-slide.without-qr .mcq-preview {
+  width: 100%;
+  max-width: 1280px;
+  height: 400px;
+  gap: 32px;
+  margin: 0 auto 0 0;
+}
+
+.host-slide.pres-slide .mcq-unsent-col,
+.host-slide.pres-slide .mcq-sent-col {
+  flex: 1;
+  max-width: 360px;
+  align-items: flex-start;
+  transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.host-slide.pres-slide.without-qr .mcq-unsent-col,
+.host-slide.pres-slide.without-qr .mcq-sent-col {
+  max-width: 420px;
+}
+
+.host-slide.pres-slide .mcq-unsent-count,
+.host-slide.pres-slide .mcq-sent-count {
+  font-size: 42px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 20px;
+  text-align: left;
+  transition: font-size 0.35s ease;
+}
+
+.host-slide.pres-slide.without-qr .mcq-unsent-count,
+.host-slide.pres-slide.without-qr .mcq-sent-count {
+  font-size: 46px;
+}
+
+.host-slide.pres-slide .mcq-unsent-line {
+  height: 6px;
+  border-radius: 3px;
+  width: 100%;
+}
+
+.host-slide.pres-slide .mcq-unsent-label,
+.host-slide.pres-slide .mcq-sent-label {
+  font-size: 26px;
+  font-weight: 400;
+  color: #111827;
+  margin-top: 18px;
+  text-align: left;
+  transition: font-size 0.35s ease;
+}
+
+.host-slide.pres-slide.without-qr .mcq-unsent-label,
+.host-slide.pres-slide.without-qr .mcq-sent-label {
+  font-size: 28px;
+}
+
+.host-slide.pres-slide .wc-preview {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left center;
+}
+
+.host-slide.pres-slide.without-qr .wc-preview {
+  transform: scale(1.25);
+}
+
+.host-slide.pres-slide .qa-empty-state {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.host-slide.pres-slide.without-qr .qa-empty-title {
+  font-size: 64px;
+}
+
+/* Top-Left Controls */
+.pres-top-left-controls {
+  position: fixed;
+  top: 24px;
+  left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.pres-top-left-controls.visible,
+.pres-top-left-controls:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Top-Right Logo */
+.pres-top-right-logo {
+  position: fixed;
+  top: 24px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  z-index: 100;
+}
+
+/* Bottom-Left Navigation */
+.pres-bottom-left-controls {
+  position: fixed;
+  bottom: 24px;
+  left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  opacity: 0.85;
+  transition: opacity 0.25s ease;
+}
+
+.pres-bottom-left-controls:hover {
+  opacity: 1;
+}
+
+/* Common subtle circular button style */
+.pres-circle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #F2F2F5;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1A1A1A;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.pres-circle-btn:hover:not(:disabled) {
+  background: #E5E5EA;
+}
+
+.pres-circle-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.pres-circle-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Center Bottom Floating Toolbar */
+.pres-floating-toolbar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.pres-floating-toolbar.visible,
+.pres-floating-toolbar:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pres-tool-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #222222;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pres-tool-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.pres-tool-btn.active {
+  color: #5064E7;
+}
+
+/* Active blue dot under QR button */
+.pres-tool-active-dot {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #5064E7;
+}
+
+/* QR Button Tooltip */
+.pres-qr-btn-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pres-qr-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #111111;
+  color: #FFFFFF;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 150;
+}
+
+.pres-qr-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #111111 transparent transparent transparent;
+}
+
+.pres-qr-btn-container:hover .pres-qr-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.pres-tooltip-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  color: #111111;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+}
+
+/* Bottom-Right info when QR is closed */
+.pres-bottom-right-info {
+  position: fixed;
+  bottom: 24px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 100;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pres-bottom-right-info.hidden {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+
+.pres-join-text {
+  font-size: 15px;
+  color: #444444;
+}
+
+.pres-join-text strong {
+  color: #111111;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.pres-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #F2F2F5;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222222;
+}
+
+/* Bottom progress bar line */
+.pres-progress-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: #5064E7;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 120;
+}
+
+/* QR Code Column in Presentation Mode */
+.pres-qr-column {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%) translateX(0);
+  right: 24px;
+  width: 336px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  z-index: 50;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pres-qr-column.hidden {
+  opacity: 0;
+  transform: translateY(-50%) translateX(40px);
+  pointer-events: none;
+}
+
+.pres-qr-box {
+  width: 100%;
+  background: #F2F2F5;
+  border-radius: 16px;
+  padding: 26px 28px 24px;
+  box-shadow: none;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pres-qr-box .qr-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #9CA3AF;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.pres-qr-box .qr-close-btn:hover {
+  color: #111827;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.pres-qr-code-wrapper {
+  background: #FFFFFF;
+  border-radius: 12px;
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  margin: 0 auto;
+}
+
+.pres-qr-code-wrapper img {
+  width: 280px;
+  height: 280px;
+  display: block;
+}
+
+.pres-qr-url {
+  font-size: 18px;
+  font-weight: 500;
+  color: #374151;
+  margin-top: 16px;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+.pres-qr-code-num {
+  font-size: 30px;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 6px;
+  letter-spacing: 1px;
+  text-align: center;
+  line-height: 1;
+}
+
+.pres-waiting-pill {
+  width: 100%;
+  background: #F2F2F5;
+  border-radius: 16px;
+  padding: 22px 24px;
+  text-align: center;
+  color: #71717A;
+  font-size: 16px;
+  font-weight: 400;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 76px;
+}
+
+/* Standalone timer widget */
+.pres-timer-standalone {
+  position: fixed;
+  top: 24px;
+  right: 130px;
+  z-index: 60;
+}
+
+/* Results Hidden State */
+.results-hidden-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: #71717A;
+  margin: auto;
+}
+
+.results-hidden-icon {
+  color: #A1A1AA;
+}
+
+.results-hidden-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #3F3F46;
+  margin: 0;
+}
+
+.results-hidden-subtitle {
+  font-size: 15px;
+  color: #71717A;
+  margin: 0;
+}

@@ -4,6 +4,7 @@ const SETTINGS_KEY = 'simplemeter_slide_settings';
 
 let currentActiveSlide = null;
 let currentSlidesDeck = [];
+let currentViewMode = 'preview'; // 'preview' | 'presentation'
 let listeners = new Set();
 
 function loadStoredSettings() {
@@ -58,6 +59,15 @@ export function updateSlideDeckDirect(slides) {
   currentSlidesDeck = Array.isArray(slides) ? slides : [];
 }
 
+export function getViewMode() {
+  return currentViewMode;
+}
+
+export function setViewMode(mode) {
+  currentViewMode = mode;
+  notify();
+}
+
 export function getDefaultMaxResponses(type) {
   switch (type) {
     case 'word-cloud':
@@ -88,13 +98,13 @@ export function setSlideSetting(slideId, key, value, slideType = null) {
   };
   if (slideId) {
     slideSettings[slideId] = {
-      ...(slideSettings[slideId] || {}),
+      ...slideSettings[slideId],
       [key]: value,
     };
   }
   if (slideType) {
     slideSettings[`type_${slideType}`] = {
-      ...(slideSettings[`type_${slideType}`] || {}),
+      ...slideSettings[`type_${slideType}`],
       [key]: value,
     };
   }
