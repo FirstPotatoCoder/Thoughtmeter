@@ -84,19 +84,22 @@ flowchart LR
 ```
 
 ### Phase 1: Local-First Deck Storage Engine
-- [ ] Create `src/utils/deckStorage.js` with helper methods:
-  - `loadDecks()`: loads all decks from `localStorage` with fallback to starter slides.
+- [x] Create `src/utils/deckStorage.js` with helper methods:
+  - `loadAllDecks()`: loads all decks from `localStorage` with fallback to starter slides.
   - `saveDeck(deck)`: saves current slide deck to `localStorage`.
-  - `createDeck(title)`: creates a new empty or template deck.
-  - `exportDeck(deckId)` / `importDeck(jsonString)`: file export/import utilities.
-- [ ] Connect `App.jsx` state to `deckStorage` so slide changes auto-persist across reloads.
-- [ ] Add deck title editing and basic deck switcher in the top bar.
+  - `createNewDeck(title)`: creates a new empty or template deck.
+  - `duplicateDeck(id)` / `deleteDeck(id)`: duplicate and delete actions.
+  - `exportDeckAsJson(deckId)` / `importDeckFromJson(jsonString)`: file export/import utilities.
+- [x] Connect `App.jsx` state to `deckStorage` so slide changes auto-persist across reloads.
+- [x] Add deck title inline editing and "My Mentis" presentation switcher dropdown in `TopBar.jsx`.
 
 ### Phase 2: Client-Side Routing & Dedicated Mobile Join Screen
-- [ ] Set up lightweight hash-based router:
+- [x] Set up lightweight hash-based router (`src/utils/useHashRoute.js`):
   - `/#/` → Main editor / presenter interface.
-  - `/#/join/:code` → Standalone fullscreen mobile participant view (optimized for mobile browsers, hiding top bar and presenter controls).
-- [ ] Ensure the mobile participant view reuses our existing phone screen components from `PresentationPreview.jsx`.
+  - `/#/join/:roomCode` → Standalone fullscreen mobile participant view.
+- [x] Create dedicated `ParticipantMobileView.jsx` and CSS (100vw/100dvh mobile web app for smartphones).
+- [x] Generate dynamic QR code in `PresentationPreview.jsx` targeting canonical `.../#/join/<roomCode>`.
+- [x] Configure `vite.config.js` with `base: './'` for zero-config subpath deployment on GitHub Pages.
 
 ### Phase 3: Realtime Room Sync Service (`RoomService.js`)
 - [ ] Abstract real-time interactions into a clean client service (`src/services/roomService.js`):
