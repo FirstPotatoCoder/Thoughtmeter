@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './PresentationPreview.css';
 import Icon from '../Icon/Icon';
 import SlideScaler from '../EditorArea/SlideScaler';
@@ -13,6 +13,7 @@ import {
   getDefaultMaxResponses,
   getSlideDeck,
   setActiveSlide,
+  getViewMode,
 } from '../../utils/slideSettings';
 
 const CLOUD_PALETTE = ['#5570E0', '#F05B51', '#8D99E4', '#2F3C7E', '#F09A93', '#9B3B36'];
@@ -70,8 +71,64 @@ export default function PresentationPreview({
 }) {
   // Re-render when slide settings change in RightSidebar Edit drawer or slide deck updates
   const [settingsTick, setSettingsTick] = useState(0);
+  const [viewMode, setViewModeState] = useState(getViewMode);
+  const isPresentationMode = viewMode === 'presentation';
+
+  const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
+  const [isResultsHidden, setIsResultsHidden] = useState(false);
+  const [isControlsVisible, setIsControlsVisible] = useState(false);
+  const controlsTimeoutRef = useRef(null);
+
+  const handleUserActivity = () => {
+    setIsControlsVisible(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      setIsControlsVisible(false);
+    }, 2800);
+  };
+
   useEffect(() => {
-    return subscribeSlideSettings(() => setSettingsTick((t) => t + 1));
+    if (!isPresentationMode) return;
+    handleUserActivity();
+    return () => {
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+    };
+  }, [isPresentationMode]);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  const handleClose = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    onClose?.();
+  };
+
+  useEffect(() => {
+    return subscribeSlideSettings(() => {
+      setSettingsTick((t) => t + 1);
+      setViewModeState(getViewMode());
+    });
   }, []);
 
   // Build preview deck: responds directly to the user's slide deck!
@@ -109,31 +166,51 @@ export default function PresentationPreview({
   const [timerSeconds, setTimerSeconds] = useState(60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
-  // Reusable Timer Widget
+  // Floating live thumbs-up reactions
+  const [reactions, setReactions] = useState([]);
+
+  const triggerThumbsUp = () => {
+    const id = Date.now() + Math.random();
+    const startRight = 40 + Math.random() * 100;
+    const driftX = (Math.random() - 0.5) * 140;
+    const size = 26 + Math.floor(Math.random() * 10);
+    const duration = 1.8 + Math.random() * 0.5;
+    const rotation = -15 + Math.random() * 30;
+
+    setReactions((prev) => [
+      ...prev,
+      { id, startRight, driftX, size, duration, rotation },
+    ]);
+
+    setTimeout(() => {
+      setReactions((prev) => prev.filter((r) => r.id !== id));
+    }, 2400);
+  };
+
+  const renderReactionsOverlay = () => (
+    <div className="presenter-reactions-overlay" aria-hidden="true">
+      {reactions.map((r) => (
+        <div
+          key={r.id}
+          className="floating-reaction"
+          style={{
+            right: `${r.startRight}px`,
+            '--drift-x': `${r.driftX}px`,
+            '--duration': `${r.duration}s`,
+            '--rotation': `${r.rotation}deg`,
+          }}
+        >
+          <div className="reaction-bubble">
+            <Icon name="thumbsUp" size={r.size} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Reusable Timer Widget matching Menti design
   const renderTimerWidget = (extraClass = '') => (
     <div className={`host-timer-widget ${extraClass}`}>
-      <button
-        className="timer-control-btn"
-        onClick={() => setTimerSeconds((prev) => Math.max(10, prev - 30))}
-        title="Subtract 30s"
-      >
-        −
-      </button>
-      <span className="timer-display-text">{formatTime(timerSeconds)}</span>
-      <button
-        className="timer-control-btn"
-        onClick={() => setTimerSeconds((prev) => prev + 30)}
-        title="Add 30s"
-      >
-        +
-      </button>
-      <button
-        className="timer-play-btn"
-        onClick={() => setIsTimerRunning((prev) => !prev)}
-        title={isTimerRunning ? 'Pause timer' : 'Start timer'}
-      >
-        {isTimerRunning ? '⏸' : '▶'}
-      </button>
       <button
         className="timer-close-btn"
         onClick={() => {
@@ -144,6 +221,49 @@ export default function PresentationPreview({
       >
         ×
       </button>
+
+      <div className="timer-controls-row">
+        <button
+          className="timer-control-btn timer-minus-btn"
+          onClick={() => setTimerSeconds((prev) => Math.max(10, prev - 30))}
+          title="Subtract 30s"
+        >
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="2" y="7" width="12" height="2" rx="1" />
+          </svg>
+        </button>
+
+        <span className="timer-display-text">{formatTime(timerSeconds)}</span>
+
+        <div className="timer-right-actions">
+          <button
+            className="timer-control-btn timer-plus-btn"
+            onClick={() => setTimerSeconds((prev) => prev + 30)}
+            title="Add 30s"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="2" y="7" width="12" height="2" rx="1" />
+              <rect x="7" y="2" width="2" height="12" rx="1" />
+            </svg>
+          </button>
+          <button
+            className="timer-play-btn"
+            onClick={() => setIsTimerRunning((prev) => !prev)}
+            title={isTimerRunning ? 'Pause timer' : 'Start timer'}
+          >
+            {isTimerRunning ? (
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="3" y="2.5" width="3.5" height="11" rx="1" />
+                <rect x="9.5" y="2.5" width="3.5" height="11" rx="1" />
+              </svg>
+            ) : (
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ marginLeft: '1.5px' }}>
+                <path d="M4 2.5v11l9-5.5-9-5.5z" />
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 
@@ -257,7 +377,15 @@ export default function PresentationPreview({
         handlePrev();
       } else if (e.key === 'Escape') {
         e.preventDefault();
-        onClose?.();
+        handleClose();
+      } else if (e.key === 'i' || e.key === 'I') {
+        setIsQrOpen((prev) => !prev);
+      } else if (e.key === 't' || e.key === 'T') {
+        setIsTimerOpen((prev) => !prev);
+      } else if (e.key === 'h' || e.key === 'H') {
+        setIsResultsHidden((prev) => !prev);
+      } else if (e.key === 'l' || e.key === 'L') {
+        triggerThumbsUp();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -325,8 +453,9 @@ export default function PresentationPreview({
   const handleToggleLike = () => {
     setParticipantLikes((prev) => ({
       ...prev,
-      [currentSlide.id]: !prev[currentSlide.id],
+      [currentSlide.id]: true,
     }));
+    triggerThumbsUp();
   };
 
   const handleQaLike = (questionId) => {
@@ -365,7 +494,17 @@ export default function PresentationPreview({
   };
 
   // Render Presenter Canvas Body Content
-  const renderPresenterContent = () => {
+  const renderPresenterContent = (showTestResponses = testResponses) => {
+    if (isResultsHidden) {
+      return (
+        <div className="results-hidden-placeholder">
+          <Icon name="eyeSlash" size={40} className="results-hidden-icon" />
+          <p className="results-hidden-title">Results are hidden</p>
+          <p className="results-hidden-subtitle">Show results with key [H] or toolbar button</p>
+        </div>
+      );
+    }
+
     const isMcq = currentSlide.type === 'mcq';
     const isCloud = currentSlide.type === 'word-cloud';
     const isOpen = currentSlide.type === 'open-ended';
@@ -381,7 +520,7 @@ export default function PresentationPreview({
           ];
 
       // Re-use hovered preview component when test responses switch is ON
-      if (testResponses) {
+      if (showTestResponses && !isResultsHidden) {
         return <McqPreview options={options} />;
       }
 
@@ -439,7 +578,7 @@ export default function PresentationPreview({
 
     if (isCloud) {
       // Re-use hovered preview component when test responses switch is ON
-      if (testResponses) {
+      if (showTestResponses && !isResultsHidden) {
         return <WordCloudPreview />;
       }
 
@@ -503,7 +642,7 @@ export default function PresentationPreview({
 
     if (isOpen) {
       // Re-use hovered preview component when test responses switch is ON
-      if (testResponses) {
+      if (showTestResponses && !isResultsHidden) {
         return <OpenEndedPreview />;
       }
 
@@ -546,7 +685,7 @@ export default function PresentationPreview({
 
     if (isQa) {
       // Re-use hovered preview component when test responses switch is ON
-      if (testResponses) {
+      if (showTestResponses && !isResultsHidden) {
         return <QaPreview topic={slideTitle || "Ask me anything"} />;
       }
 
@@ -709,12 +848,6 @@ export default function PresentationPreview({
           >
             Submit
           </button>
-
-          {(words.length > 0 || testResponses) && (
-            <button className="phone-next-btn" onClick={handleNext}>
-              Next question
-            </button>
-          )}
         </div>
       );
     }
@@ -766,12 +899,6 @@ export default function PresentationPreview({
           >
             Submit
           </button>
-
-          {(responses.length > 0 || testResponses) && (
-            <button className="phone-next-btn" onClick={handleNext}>
-              Next question
-            </button>
-          )}
         </div>
       );
     }
@@ -821,6 +948,15 @@ export default function PresentationPreview({
               >
                 Submit
               </button>
+              <div className="phone-bottom-actions phone-qa-bottom-actions">
+                <button
+                  className={`phone-thumbs-btn ${isLiked ? 'liked' : ''}`}
+                  onClick={handleToggleLike}
+                  title="Send reaction"
+                >
+                  <Icon name="thumbsUp" size={20} />
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -895,6 +1031,13 @@ export default function PresentationPreview({
             >
               Ask new question
             </button>
+            <button
+              className={`phone-thumbs-btn ${isLiked ? 'liked' : ''}`}
+              onClick={handleToggleLike}
+              title="Send reaction"
+            >
+              <Icon name="thumbsUp" size={20} />
+            </button>
           </div>
         </div>
       );
@@ -904,6 +1047,157 @@ export default function PresentationPreview({
   };
 
   const isLiked = !!participantLikes[currentSlide.id];
+
+  if (isPresentationMode) {
+    return (
+      <div
+        className="presentation-mode-fullscreen"
+        onMouseMove={handleUserActivity}
+        onMouseEnter={handleUserActivity}
+      >
+        {/* Top-Left Controls: Close & Fullscreen */}
+        <div className={`pres-top-left-controls ${isControlsVisible ? 'visible' : ''}`}>
+          <button className="pres-circle-btn" onClick={handleClose} title="Exit presentation (Esc)">
+            <Icon name="close" size={16} />
+          </button>
+          <button
+            className="pres-circle-btn"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+          >
+            <Icon name={isFullscreen ? 'compress' : 'expand'} size={16} />
+          </button>
+        </div>
+
+        {/* Top-Right Logo */}
+        <div className="pres-top-right-logo">
+          <MentiLogo size={24} />
+        </div>
+
+        {/* Presentation Slide Canvas */}
+        <div className="pres-stage-container">
+          <SlideScaler pad={0} maxScale={2}>
+            <div className={`host-slide pres-slide ${isQrOpen ? 'with-qr' : 'without-qr'}`}>
+              {/* Slide Title - Render only if exists and not Q&A */}
+              {slideTitle && currentSlide.type !== 'qa' ? (
+                <div className="host-slide-title-wrapper">
+                  <h1 className="host-slide-title">{slideTitle}</h1>
+                </div>
+              ) : null}
+
+              {/* Body Canvas */}
+              <div className="slide-body">
+                {renderPresenterContent(false)}
+              </div>
+
+              {/* Floating Reactions Overlay */}
+              {renderReactionsOverlay()}
+            </div>
+          </SlideScaler>
+        </div>
+
+        {/* Timer Widget in Presentation Mode (Absolute position, completely independent of QR) */}
+        {isTimerOpen && renderTimerWidget('pres-timer-widget')}
+
+        {/* QR Code Column on Right (Fixed to screen right edge, matching ref.png) */}
+        <div className={`pres-qr-column ${isQrOpen ? 'visible' : 'hidden'}`}>
+          <div className="qr-overlay-box pres-qr-box">
+            <button
+              className="qr-close-btn"
+              onClick={() => setIsQrOpen(false)}
+              title="Close QR Code (i)"
+            >
+              ×
+            </button>
+            <div className="qr-code-placeholder pres-qr-code-wrapper">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=560x560&data=https://menti.com/${joinCode.replace(/\s+/g, '')}`}
+                alt="QR Code"
+                width="280"
+                height="280"
+              />
+            </div>
+            <div className="qr-url pres-qr-url">menti.com</div>
+            <div className="qr-code-num pres-qr-code-num">{joinCode}</div>
+          </div>
+
+          <div className="pres-waiting-pill">
+            {submissionCount > 0 ? `${submissionCount} joined` : 'Waiting for participants'}
+          </div>
+        </div>
+
+        {/* Bottom-Left Controls: Prev, Next (Lightbulb removed!) */}
+        <div className="pres-bottom-left-controls">
+          <button
+            className="pres-circle-btn"
+            onClick={handlePrev}
+            disabled={currentSlideIndex === 0}
+            title="Previous slide (←)"
+          >
+            ←
+          </button>
+          <button
+            className="pres-circle-btn"
+            onClick={handleNext}
+            title={currentSlideIndex === deck.length - 1 ? 'End presentation' : 'Next slide (→)'}
+          >
+            →
+          </button>
+        </div>
+
+        {/* Floating Pill Toolbar (Center Bottom: ONLY Timer, QR, and Hide results) */}
+        <div className={`pres-floating-toolbar ${isControlsVisible ? 'visible' : ''}`}>
+          <button
+            className={`pres-tool-btn ${isTimerOpen ? 'active' : ''}`}
+            onClick={() => setIsTimerOpen((prev) => !prev)}
+            title="Timer"
+          >
+            <Icon name="timer" size={19} />
+          </button>
+          <div className="pres-qr-btn-container">
+            <button
+              className={`pres-tool-btn ${isQrOpen ? 'active' : ''}`}
+              onClick={() => setIsQrOpen((prev) => !prev)}
+              title="Show joining instructions (i)"
+            >
+              <Icon name="qr" size={19} />
+              {isQrOpen && <span className="pres-tool-active-dot" />}
+            </button>
+            <div className="pres-qr-tooltip">
+              {isQrOpen ? 'Hide joining instructions' : 'Show joining instructions'}{' '}
+              <span className="pres-tooltip-key">I</span>
+            </div>
+          </div>
+          <button
+            className={`pres-tool-btn ${isResultsHidden ? 'active' : ''}`}
+            onClick={() => setIsResultsHidden((prev) => !prev)}
+            title={isResultsHidden ? 'Show results (h)' : 'Hide results (h)'}
+          >
+            <Icon name="eyeSlash" size={19} />
+          </button>
+        </div>
+
+        {/* Bottom-Right info when QR is closed (matching image2.png) */}
+        <div className={`pres-bottom-right-info ${!isQrOpen ? 'visible' : 'hidden'}`}>
+          <span className="pres-join-text">
+            Join at <strong>menti.com</strong> <strong>{joinCode}</strong>
+          </span>
+          <div className="pres-user-badge">
+            <Icon name="users" size={16} />
+            <span>{submissionCount}</span>
+          </div>
+        </div>
+
+        {/* Slide Progress Bar across bottom */}
+        <div
+          className="pres-progress-bar"
+          style={{
+            width: `${((currentSlideIndex + 1) / Math.max(deck.length, 1)) * 100}%`,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="presentation-preview-overlay">
@@ -961,15 +1255,15 @@ export default function PresentationPreview({
                     {renderPresenterContent()}
                   </div>
 
-                  {/* Standalone Timer Widget when QR is OFF (sits below logo without covering it) */}
-                  {isTimerOpen && !isQrOpen && renderTimerWidget('standalone')}
+                  {/* Floating Reactions Overlay */}
+                  {renderReactionsOverlay()}
+
+                  {/* Timer Widget in Host Preview (Absolute position, completely independent of QR) */}
+                  {isTimerOpen && renderTimerWidget('host-preview-timer')}
 
                   {/* QR Overlay Box (Vertically Aligned) or Compact Footer */}
                   {isQrOpen ? (
                     <div className="host-qr-column">
-                      {/* Timer Widget directly above & centered on the QR Code */}
-                      {isTimerOpen && renderTimerWidget()}
-
                       <div className="qr-overlay-box">
                         <button
                           className="qr-close-btn"
@@ -1069,9 +1363,7 @@ export default function PresentationPreview({
                         →
                       </button>
                     )}
-                    <button className="host-nav-btn" title="Presenter tips">
-                      💡
-                    </button>
+
                   </div>
 
                   {/* Slide Progress Bar across bottom */}
