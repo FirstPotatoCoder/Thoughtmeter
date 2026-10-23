@@ -22,22 +22,46 @@ export default function ParticipantMobileView({ roomCode }) {
   const [currentSlide, setCurrentSlide] = useState(null);
   const sessionRef = useRef(null);
 
-  // Participant Form States
+  const cleanCode = (roomCode || '').replace(/\s+/g, '');
+  const storageKey = `thoughtmeter_participant_submissions_${cleanCode}`;
+
+  // Submissions tracked per slide ID:
+  // {
+  //   [slideId]: {
+  //     isSubmitted: boolean, // for MCQ
+  //     selectedOptions: number[], // for MCQ
+  //     words: string[], // for word-cloud
+  //     responses: string[], // for open-ended
+  //     isLiked: boolean, // for reaction thumbs up
+  //     qaQuestions: Array<{ id, text, likes, answered }>,
+  //     userLikedQuestions: Record<string, boolean>
+  //   }
+  // }
+  const [submissionsBySlide, setSubmissionsBySlide] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem(storageKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Sync submissions to sessionStorage for persistence across mobile refreshes
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(submissionsBySlide));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [submissionsBySlide, storageKey]);
+
+  // Temporary / draft input states for the currently displayed slide
   const [selectedMcqOptions, setSelectedMcqOptions] = useState([]);
   const [wordInput, setWordInput] = useState('');
-  const [submittedWords, setSubmittedWords] = useState([]);
   const [openInput, setOpenInput] = useState('');
-  const [submittedResponses, setSubmittedResponses] = useState([]);
   const [qaInput, setQaInput] = useState('');
   const [qaViewMode, setQaViewMode] = useState('input'); // 'input' | 'list'
   const [qaFilter, setQaFilter] = useState('Recent');
-  const [qaQuestions, setQaQuestions] = useState([
-    { id: 1, text: 'Can we access these slides after the presentation?', likes: 3, answered: false },
-    { id: 2, text: 'Is there a homework assignment based on this?', likes: 1, answered: false },
-  ]);
-  const [userLikedQuestions, setUserLikedQuestions] = useState({});
-  const [isLiked, setIsLiked] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [floatingReactions, setFloatingReactions] = useState([]);
 
   // Subscribe to live room via Realtime Service
@@ -49,14 +73,13 @@ export default function ParticipantMobileView({ roomCode }) {
       if (slide) {
         setCurrentSlide((prevSlide) => {
           if (!prevSlide || prevSlide.id !== slide.id) {
-            // Reset participant input state only when moving to a new slide
+            // Reset only unsubmitted draft input states when moving between slides.
+            // All submitted answers remain permanently locked per slide ID.
             setSelectedMcqOptions([]);
             setWordInput('');
-            setSubmittedWords([]);
             setOpenInput('');
-            setSubmittedResponses([]);
-            setIsSubmitted(false);
-            setIsLiked(false);
+            setQaInput('');
+            setQaViewMode('input');
           }
           return slide;
         });
@@ -73,18 +96,40 @@ export default function ParticipantMobileView({ roomCode }) {
     ? currentSlide.questionHtml.replace(/<[^>]*>/g, '').trim()
     : '';
 
-  const slideMaxResponses = currentSlide
-    ? getSlideSetting(
-        currentSlide.id,
-        'maxResponses',
-        getDefaultMaxResponses(currentSlide.type),
-        currentSlide.type,
-      )
-    : 1;
+  const slideMaxResponses =
+    currentSlide?.maxResponses !== undefined
+      ? currentSlide.maxResponses
+      : currentSlide
+      ? getSlideSetting(
+          currentSlide.id,
+          'maxResponses',
+          getDefaultMaxResponses(currentSlide.type),
+          currentSlide.type,
+        )
+      : 1;
+
+  // Active submission data for the current slide
+  const currentSub = (currentSlide?.id && submissionsBySlide[currentSlide.id]) || {};
+  const isSubmitted = !!currentSub.isSubmitted;
+  const submittedWords = currentSub.words || [];
+  const submittedResponses = currentSub.responses || [];
+  const isLiked = !!currentSub.isLiked;
+  const userLikedQuestions = currentSub.userLikedQuestions || {};
+  const qaQuestions = currentSub.qaQuestions || [
+    { id: 1, text: 'Can we access these slides after the presentation?', likes: 3, answered: false },
+    { id: 2, text: 'Is there a homework assignment based on this?', likes: 1, answered: false },
+  ];
 
   // Reaction interaction matching preview screen
   const handleToggleLike = () => {
-    setIsLiked(true);
+    if (!currentSlide) return;
+    setSubmissionsBySlide((prev) => ({
+      ...prev,
+      [currentSlide.id]: {
+        ...prev[currentSlide.id],
+        isLiked: true,
+      },
+    }));
     sessionRef.current?.sendReaction('thumbsUp');
     const id = Date.now() + Math.random();
     const driftX = (Math.random() - 0.5) * 80;
@@ -115,12 +160,20 @@ export default function ParticipantMobileView({ roomCode }) {
   };
 
   const handleMcqSubmit = () => {
-    if (selectedMcqOptions.length > 0 && currentSlide) {
+    if (selectedMcqOptions.length > 0 && currentSlide && !isSubmitted) {
       sessionRef.current?.submitVote(currentSlide.id, {
         type: 'mcq',
         selectedOptionIndices: selectedMcqOptions,
       });
-      setIsSubmitted(true);
+      setSubmissionsBySlide((prev) => ({
+        ...prev,
+        [currentSlide.id]: {
+          ...prev[currentSlide.id],
+          isSubmitted: true,
+          selectedOptions: [...selectedMcqOptions],
+        },
+      }));
+      setSelectedMcqOptions([]);
     }
   };
 
@@ -136,7 +189,16 @@ export default function ParticipantMobileView({ roomCode }) {
       type: 'word-cloud',
       words: [trimmed],
     });
-    setSubmittedWords((prev) => [...prev, trimmed]);
+    setSubmissionsBySlide((prev) => {
+      const existing = prev[currentSlide.id]?.words || [];
+      return {
+        ...prev,
+        [currentSlide.id]: {
+          ...prev[currentSlide.id],
+          words: [...existing, trimmed],
+        },
+      };
+    });
     setWordInput('');
   };
 
@@ -152,7 +214,16 @@ export default function ParticipantMobileView({ roomCode }) {
       type: 'open-ended',
       text: trimmed,
     });
-    setSubmittedResponses((prev) => [...prev, trimmed]);
+    setSubmissionsBySlide((prev) => {
+      const existing = prev[currentSlide.id]?.responses || [];
+      return {
+        ...prev,
+        [currentSlide.id]: {
+          ...prev[currentSlide.id],
+          responses: [...existing, trimmed],
+        },
+      };
+    });
     setOpenInput('');
   };
 
@@ -165,27 +236,53 @@ export default function ParticipantMobileView({ roomCode }) {
       type: 'qa',
       text: trimmed,
     });
-    setQaQuestions((prev) => [
-      { id: Date.now(), text: trimmed, likes: 0, answered: false },
-      ...prev,
-    ]);
+    const newQ = { id: Date.now(), text: trimmed, likes: 0, answered: false };
+    setSubmissionsBySlide((prev) => {
+      const existingSub = prev[currentSlide.id] || {};
+      const existingQuestions = existingSub.qaQuestions || [
+        { id: 1, text: 'Can we access these slides after the presentation?', likes: 3, answered: false },
+        { id: 2, text: 'Is there a homework assignment based on this?', likes: 1, answered: false },
+      ];
+      return {
+        ...prev,
+        [currentSlide.id]: {
+          ...existingSub,
+          qaQuestions: [newQ, ...existingQuestions],
+        },
+      };
+    });
     setQaInput('');
     setQaViewMode('list');
   };
 
   const handleQaLike = (qId) => {
+    if (!currentSlide) return;
     const isCurrentlyLiked = !!userLikedQuestions[qId];
-    setUserLikedQuestions((prev) => ({
-      ...prev,
-      [qId]: !isCurrentlyLiked,
-    }));
-    setQaQuestions((prev) =>
-      prev.map((q) => {
+    setSubmissionsBySlide((prev) => {
+      const existingSub = prev[currentSlide.id] || {};
+      const existingLiked = existingSub.userLikedQuestions || {};
+      const existingQuestions = existingSub.qaQuestions || [
+        { id: 1, text: 'Can we access these slides after the presentation?', likes: 3, answered: false },
+        { id: 2, text: 'Is there a homework assignment based on this?', likes: 1, answered: false },
+      ];
+      const updatedQuestions = existingQuestions.map((q) => {
         if (q.id !== qId) return q;
         const newLikes = isCurrentlyLiked ? Math.max(0, q.likes - 1) : q.likes + 1;
         return { ...q, likes: newLikes };
-      }),
-    );
+      });
+
+      return {
+        ...prev,
+        [currentSlide.id]: {
+          ...existingSub,
+          userLikedQuestions: {
+            ...existingLiked,
+            [qId]: !isCurrentlyLiked,
+          },
+          qaQuestions: updatedQuestions,
+        },
+      };
+    });
   };
 
   const renderContent = () => {

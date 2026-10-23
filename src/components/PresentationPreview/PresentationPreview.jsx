@@ -305,12 +305,15 @@ export default function PresentationPreview({
   const slideTitle = currentSlide?.questionHtml ? currentSlide.questionHtml.replace(/<[^>]*>/g, '').trim() : '';
 
   // Inherit max responses setting from Edit drawer (checks slideId and slideType)
-  const slideMaxResponses = getSlideSetting(
-    currentSlide?.id,
-    'maxResponses',
-    getDefaultMaxResponses(currentSlide?.type),
-    currentSlide?.type
-  );
+  const slideMaxResponses =
+    currentSlide?.maxResponses !== undefined
+      ? currentSlide.maxResponses
+      : getSlideSetting(
+          currentSlide?.id,
+          'maxResponses',
+          getDefaultMaxResponses(currentSlide?.type),
+          currentSlide?.type
+        );
 
   const currentSubmission = userSubmissions[currentSlide.id];
   const submissionCount = currentSlide.type === 'word-cloud'
@@ -329,7 +332,10 @@ export default function PresentationPreview({
 
   // Initialize Realtime Host Session
   useEffect(() => {
-    const session = createHostSession(cleanJoinCode, currentSlide, slideTitle);
+    const initialSlideWithSettings = currentSlide
+      ? { ...currentSlide, maxResponses: slideMaxResponses }
+      : null;
+    const session = createHostSession(cleanJoinCode, initialSlideWithSettings, slideTitle);
     hostSessionRef.current = session;
 
     session.onParticipantCount((count) => {
@@ -401,9 +407,21 @@ export default function PresentationPreview({
   // Broadcast slide changes to audience in real time
   useEffect(() => {
     if (hostSessionRef.current && currentSlide) {
-      hostSessionRef.current.updateSlide(currentSlide, slideTitle);
+      const slideWithSettings = {
+        ...currentSlide,
+        maxResponses: slideMaxResponses,
+      };
+      hostSessionRef.current.updateSlide(slideWithSettings, slideTitle);
     }
-  }, [currentSlide, slideTitle]);
+  }, [currentSlide, slideTitle, slideMaxResponses]);
+
+  // Reset participant draft inputs in preview modal when switching slides
+  useEffect(() => {
+    setSelectedMcqOptions([]);
+    setWordInput('');
+    setOpenInput('');
+    setQaInput('');
+  }, [currentSlideIndex]);
 
   // Timer interval countdown
   useEffect(() => {
