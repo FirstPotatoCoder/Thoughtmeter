@@ -166,6 +166,48 @@ export default function PresentationPreview({
   const [timerSeconds, setTimerSeconds] = useState(60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
+  // Floating live thumbs-up reactions
+  const [reactions, setReactions] = useState([]);
+
+  const triggerThumbsUp = () => {
+    const id = Date.now() + Math.random();
+    const startRight = 40 + Math.random() * 100;
+    const driftX = (Math.random() - 0.5) * 140;
+    const size = 26 + Math.floor(Math.random() * 10);
+    const duration = 1.8 + Math.random() * 0.5;
+    const rotation = -15 + Math.random() * 30;
+
+    setReactions((prev) => [
+      ...prev,
+      { id, startRight, driftX, size, duration, rotation },
+    ]);
+
+    setTimeout(() => {
+      setReactions((prev) => prev.filter((r) => r.id !== id));
+    }, 2400);
+  };
+
+  const renderReactionsOverlay = () => (
+    <div className="presenter-reactions-overlay" aria-hidden="true">
+      {reactions.map((r) => (
+        <div
+          key={r.id}
+          className="floating-reaction"
+          style={{
+            right: `${r.startRight}px`,
+            '--drift-x': `${r.driftX}px`,
+            '--duration': `${r.duration}s`,
+            '--rotation': `${r.rotation}deg`,
+          }}
+        >
+          <div className="reaction-bubble">
+            <Icon name="thumbsUp" size={r.size} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   // Reusable Timer Widget
   const renderTimerWidget = (extraClass = '') => (
     <div className={`host-timer-widget ${extraClass}`}>
@@ -319,6 +361,8 @@ export default function PresentationPreview({
         setIsQrOpen((prev) => !prev);
       } else if (e.key === 'h' || e.key === 'H') {
         setIsResultsHidden((prev) => !prev);
+      } else if (e.key === 'l' || e.key === 'L') {
+        triggerThumbsUp();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -386,8 +430,9 @@ export default function PresentationPreview({
   const handleToggleLike = () => {
     setParticipantLikes((prev) => ({
       ...prev,
-      [currentSlide.id]: !prev[currentSlide.id],
+      [currentSlide.id]: true,
     }));
+    triggerThumbsUp();
   };
 
   const handleQaLike = (questionId) => {
@@ -780,12 +825,6 @@ export default function PresentationPreview({
           >
             Submit
           </button>
-
-          {(words.length > 0 || testResponses) && (
-            <button className="phone-next-btn" onClick={handleNext}>
-              Next question
-            </button>
-          )}
         </div>
       );
     }
@@ -837,12 +876,6 @@ export default function PresentationPreview({
           >
             Submit
           </button>
-
-          {(responses.length > 0 || testResponses) && (
-            <button className="phone-next-btn" onClick={handleNext}>
-              Next question
-            </button>
-          )}
         </div>
       );
     }
@@ -892,6 +925,15 @@ export default function PresentationPreview({
               >
                 Submit
               </button>
+              <div className="phone-bottom-actions phone-qa-bottom-actions">
+                <button
+                  className={`phone-thumbs-btn ${isLiked ? 'liked' : ''}`}
+                  onClick={handleToggleLike}
+                  title="Send reaction"
+                >
+                  <Icon name="thumbsUp" size={20} />
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -966,6 +1008,13 @@ export default function PresentationPreview({
             >
               Ask new question
             </button>
+            <button
+              className={`phone-thumbs-btn ${isLiked ? 'liked' : ''}`}
+              onClick={handleToggleLike}
+              title="Send reaction"
+            >
+              <Icon name="thumbsUp" size={20} />
+            </button>
           </div>
         </div>
       );
@@ -1017,6 +1066,9 @@ export default function PresentationPreview({
               <div className="slide-body">
                 {renderPresenterContent(false)}
               </div>
+
+              {/* Floating Reactions Overlay */}
+              {renderReactionsOverlay()}
             </div>
           </SlideScaler>
         </div>
@@ -1180,6 +1232,9 @@ export default function PresentationPreview({
                   <div className="slide-body">
                     {renderPresenterContent()}
                   </div>
+
+                  {/* Floating Reactions Overlay */}
+                  {renderReactionsOverlay()}
 
                   {/* Standalone Timer Widget when QR is OFF (sits below logo without covering it) */}
                   {isTimerOpen && !isQrOpen && renderTimerWidget('standalone')}
