@@ -76,6 +76,8 @@ export function getDefaultMaxResponses(type) {
       return 'unlimited';
     case 'mcq':
       return 1;
+    case 'qa':
+      return 'unlimited';
     default:
       return 1;
   }

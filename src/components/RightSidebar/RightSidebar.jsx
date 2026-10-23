@@ -57,18 +57,25 @@ export default function RightSidebar() {
         return 'How many responses each audience member can submit.';
       case 'mcq':
         return 'How many options each audience member can choose.';
+      case 'qa':
+        return 'How many questions each audience member can submit.';
       default:
         return 'Limit how many responses each audience member can submit.';
     }
   };
 
-  const getResponsesHelpNote = (val) => {
+  const getResponsesHelpNote = (val, type) => {
+    if (type === 'qa') {
+      if (val === 1) return 'Participants can only ask 1 question.';
+      if (val === 'unlimited') return 'Participants can ask unlimited questions.';
+      return `Participants can ask up to ${val} questions.`;
+    }
     if (val === 1) return 'Participants can only submit once.';
     if (val === 'unlimited') return 'Participants can submit unlimited times.';
     return `Participants can submit up to ${val} times.`;
   };
 
-  const isSupportedType = ['word-cloud', 'open-ended', 'mcq'].includes(slideType);
+  const isSupportedType = ['word-cloud', 'open-ended', 'mcq', 'qa'].includes(slideType);
 
   return (
     <div className="right-sidebar-wrapper">
@@ -124,7 +131,7 @@ export default function RightSidebar() {
 
                     <div className="response-help-box">
                       <Icon name="settings" size={14} className="help-info-icon" />
-                      <span>{getResponsesHelpNote(currentMaxResponses)}</span>
+                      <span>{getResponsesHelpNote(currentMaxResponses, slideType)}</span>
                     </div>
                   </div>
                 ) : (

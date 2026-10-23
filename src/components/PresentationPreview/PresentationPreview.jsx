@@ -333,7 +333,11 @@ export default function PresentationPreview({
   // Initialize Realtime Host Session
   useEffect(() => {
     const initialSlideWithSettings = currentSlide
-      ? { ...currentSlide, maxResponses: slideMaxResponses }
+      ? {
+          ...currentSlide,
+          maxResponses: slideMaxResponses,
+          questions: userSubmissions[currentSlide.id]?.questions || [],
+        }
       : null;
     const session = createHostSession(cleanJoinCode, initialSlideWithSettings, slideTitle);
     hostSessionRef.current = session;
@@ -385,12 +389,38 @@ export default function PresentationPreview({
         }
 
         if (payload.type === 'qa') {
-          const newQ = { id: Date.now(), text: payload.text, likes: 0, answered: false };
+          const newQ = {
+            id: payload.id || Date.now(),
+            text: payload.text,
+            likes: 0,
+            answered: false,
+          };
           return {
             ...prev,
             [targetSlideId]: {
               ...existing,
               questions: [...(existing.questions || []), newQ],
+            },
+          };
+        }
+
+        if (payload.type === 'qa-like') {
+          const existingQuestions = existing.questions || [];
+          const updated = existingQuestions.map((q) => {
+            if (String(q.id) === String(payload.questionId)) {
+              const delta = payload.isLiked ? 1 : -1;
+              return {
+                ...q,
+                likes: Math.max(0, (q.likes || 0) + delta),
+              };
+            }
+            return q;
+          });
+          return {
+            ...prev,
+            [targetSlideId]: {
+              ...existing,
+              questions: updated,
             },
           };
         }
@@ -404,16 +434,17 @@ export default function PresentationPreview({
     };
   }, [cleanJoinCode]);
 
-  // Broadcast slide changes to audience in real time
+  // Broadcast slide changes and live questions to audience in real time
   useEffect(() => {
     if (hostSessionRef.current && currentSlide) {
       const slideWithSettings = {
         ...currentSlide,
         maxResponses: slideMaxResponses,
+        questions: userSubmissions[currentSlide.id]?.questions || [],
       };
       hostSessionRef.current.updateSlide(slideWithSettings, slideTitle);
     }
-  }, [currentSlide, slideTitle, slideMaxResponses]);
+  }, [currentSlide, slideTitle, slideMaxResponses, userSubmissions]);
 
   // Reset participant draft inputs in preview modal when switching slides
   useEffect(() => {
@@ -547,6 +578,7 @@ export default function PresentationPreview({
     const trimmed = qaInput.trim();
     if (!trimmed) return;
     const existing = userSubmissions[currentSlide.id]?.questions || [];
+    if (slideMaxResponses !== 'unlimited' && existing.length >= slideMaxResponses) return;
     const newQ = { id: Date.now(), text: trimmed, likes: 0, answered: false };
 
     setUserSubmissions((prev) => ({
@@ -568,16 +600,17 @@ export default function PresentationPreview({
   };
 
   const handleQaLike = (questionId) => {
-    const isCurrentlyLiked = !!userLikedQuestions[questionId];
+    const isCurrentlyLiked = !!userLikedQuestions[questionId] || !!userLikedQuestions[String(questionId)];
     setUserLikedQuestions((prev) => ({
       ...prev,
       [questionId]: !isCurrentlyLiked,
+      [String(questionId)]: !isCurrentlyLiked,
     }));
     setUserSubmissions((prev) => {
       const current = prev[currentSlide.id];
       if (!current || !current.questions) return prev;
       const updated = current.questions.map((q) => {
-        if (q.id !== questionId) return q;
+        if (String(q.id) !== String(questionId)) return q;
         const newLikes = isCurrentlyLiked ? Math.max(0, (q.likes || 1) - 1) : (q.likes || 0) + 1;
         return { ...q, likes: newLikes };
       });
@@ -1024,6 +1057,20 @@ export default function PresentationPreview({
 
     if (isQa) {
       const questions = userSubmissions[currentSlide.id]?.questions || [];
+      const isLimitReached = slideMaxResponses !== 'unlimited' && questions.length >= slideMaxResponses;
+
+      const helperMessage = () => {
+        if (isLimitReached) {
+          return `You have reached the question limit (${questions.length}/${slideMaxResponses})`;
+        }
+        if (slideMaxResponses === 'unlimited') {
+          return 'You may submit multiple questions';
+        }
+        if (questions.length > 0) {
+          return `You may submit up to ${slideMaxResponses} questions (${slideMaxResponses - questions.length} left)`;
+        }
+        return `You may submit up to ${slideMaxResponses} questions`;
+      };
 
       // Sort questions based on active dropdown filter
       const sortedQuestions = [...questions].sort((a, b) => {
@@ -1054,15 +1101,23 @@ export default function PresentationPreview({
               <div className="phone-qa-textarea-group">
                 <textarea
                   className="phone-qa-textarea"
-                  placeholder="Short responses are recommended. You have 200 characters left."
+                  placeholder={
+                    isLimitReached
+                      ? 'Question limit reached'
+                      : 'Short responses are recommended. You have 200 characters left.'
+                  }
                   maxLength={200}
                   value={qaInput}
+                  disabled={isLimitReached}
                   onChange={(e) => setQaInput(e.target.value)}
                 />
               </div>
+              <p className="phone-help-text" style={{ padding: '0 4px', margin: '8px 0 16px' }}>
+                {helperMessage()}
+              </p>
               <button
                 className="phone-qa-submit-button"
-                disabled={!qaInput.trim()}
+                disabled={isLimitReached || !qaInput.trim()}
                 onClick={handleQaSubmit}
               >
                 Submit
@@ -1143,12 +1198,14 @@ export default function PresentationPreview({
           <div className="phone-qa-bottom">
             <button
               className="phone-qa-ask-button"
+              disabled={isLimitReached}
               onClick={() => {
+                if (isLimitReached) return;
                 setQaInput('');
                 setQaViewMode('input');
               }}
             >
-              Ask new question
+              {isLimitReached ? 'Question limit reached' : 'Ask new question'}
             </button>
             <button
               className={`phone-thumbs-btn ${isLiked ? 'liked' : ''}`}

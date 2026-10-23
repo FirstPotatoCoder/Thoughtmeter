@@ -158,7 +158,7 @@ export default function QaPreview({
                 <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.88 0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.45-.08-.66a1.002 1.002 0 0 0-.75-.62l-.7-.07-6.06 6.13c-.21.2-.33.48-.33.78V18c0 1.1.9 2 2 2h8c.82 0 1.55-.5 1.86-1.26l2.47-5.86z" />
               </svg>
             </span>
-            <span>{currentQ.likes || 0}</span>
+            <span className="qa-preview-likes-count">{currentQ.likes || 0}</span>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import './ParticipantMobileView.css';
 import Icon from '../Icon/Icon';
 import { getSlideSetting, getDefaultMaxResponses } from '../../utils/slideSettings';
@@ -115,10 +115,32 @@ export default function ParticipantMobileView({ roomCode }) {
   const submittedResponses = currentSub.responses || [];
   const isLiked = !!currentSub.isLiked;
   const userLikedQuestions = currentSub.userLikedQuestions || {};
-  const qaQuestions = currentSub.qaQuestions || [
-    { id: 1, text: 'Can we access these slides after the presentation?', likes: 3, answered: false },
-    { id: 2, text: 'Is there a homework assignment based on this?', likes: 1, answered: false },
-  ];
+  const myQuestions = currentSub.myQuestions || [];
+
+  // Live questions broadcast by host on currentSlide, merged with any pending local submissions
+  const qaQuestions = useMemo(() => {
+    const serverQuestions = Array.isArray(currentSlide?.questions) ? currentSlide.questions : [];
+    const localQuestions = currentSub.localQuestions || [];
+    const serverIds = new Set(serverQuestions.map((q) => String(q.id)));
+    const pendingLocal = localQuestions.filter((lq) => !serverIds.has(String(lq.id)));
+    return [...pendingLocal, ...serverQuestions];
+  }, [currentSlide?.questions, currentSub.localQuestions]);
+
+  const isQaLimitReached =
+    slideMaxResponses !== 'unlimited' && myQuestions.length >= slideMaxResponses;
+
+  const qaHelperMessage = () => {
+    if (isQaLimitReached) {
+      return `You have reached the question limit (${myQuestions.length}/${slideMaxResponses})`;
+    }
+    if (slideMaxResponses === 'unlimited') {
+      return 'You may submit multiple questions';
+    }
+    if (myQuestions.length > 0) {
+      return `You may submit up to ${slideMaxResponses} questions (${slideMaxResponses - myQuestions.length} left)`;
+    }
+    return `You may submit up to ${slideMaxResponses} questions`;
+  };
 
   // Reaction interaction matching preview screen
   const handleToggleLike = () => {
@@ -231,23 +253,27 @@ export default function ParticipantMobileView({ roomCode }) {
   const handleQaSubmit = () => {
     const trimmed = qaInput.trim();
     if (!trimmed || !currentSlide) return;
+    if (isQaLimitReached) return;
+
+    const newQId = Date.now();
+    const newQ = { id: newQId, text: trimmed, likes: 0, answered: false };
 
     sessionRef.current?.submitVote(currentSlide.id, {
       type: 'qa',
+      id: newQId,
       text: trimmed,
     });
-    const newQ = { id: Date.now(), text: trimmed, likes: 0, answered: false };
+
     setSubmissionsBySlide((prev) => {
       const existingSub = prev[currentSlide.id] || {};
-      const existingQuestions = existingSub.qaQuestions || [
-        { id: 1, text: 'Can we access these slides after the presentation?', likes: 3, answered: false },
-        { id: 2, text: 'Is there a homework assignment based on this?', likes: 1, answered: false },
-      ];
+      const existingMy = existingSub.myQuestions || [];
+      const existingLocal = existingSub.localQuestions || [];
       return {
         ...prev,
         [currentSlide.id]: {
           ...existingSub,
-          qaQuestions: [newQ, ...existingQuestions],
+          myQuestions: [...existingMy, newQId],
+          localQuestions: [newQ, ...existingLocal],
         },
       };
     });
@@ -257,18 +283,26 @@ export default function ParticipantMobileView({ roomCode }) {
 
   const handleQaLike = (qId) => {
     if (!currentSlide) return;
-    const isCurrentlyLiked = !!userLikedQuestions[qId];
+    const isCurrentlyLiked = !!userLikedQuestions[qId] || !!userLikedQuestions[String(qId)];
+    const nextLiked = !isCurrentlyLiked;
+
+    // Send vote to host over WebSocket
+    sessionRef.current?.submitVote(currentSlide.id, {
+      type: 'qa-like',
+      questionId: qId,
+      isLiked: nextLiked,
+    });
+
     setSubmissionsBySlide((prev) => {
       const existingSub = prev[currentSlide.id] || {};
       const existingLiked = existingSub.userLikedQuestions || {};
-      const existingQuestions = existingSub.qaQuestions || [
-        { id: 1, text: 'Can we access these slides after the presentation?', likes: 3, answered: false },
-        { id: 2, text: 'Is there a homework assignment based on this?', likes: 1, answered: false },
-      ];
-      const updatedQuestions = existingQuestions.map((q) => {
-        if (q.id !== qId) return q;
-        const newLikes = isCurrentlyLiked ? Math.max(0, q.likes - 1) : q.likes + 1;
-        return { ...q, likes: newLikes };
+      const existingLocal = existingSub.localQuestions || [];
+      const updatedLocal = existingLocal.map((q) => {
+        if (String(q.id) === String(qId)) {
+          const delta = nextLiked ? 1 : -1;
+          return { ...q, likes: Math.max(0, (q.likes || 0) + delta) };
+        }
+        return q;
       });
 
       return {
@@ -277,9 +311,10 @@ export default function ParticipantMobileView({ roomCode }) {
           ...existingSub,
           userLikedQuestions: {
             ...existingLiked,
-            [qId]: !isCurrentlyLiked,
+            [qId]: nextLiked,
+            [String(qId)]: nextLiked,
           },
-          qaQuestions: updatedQuestions,
+          localQuestions: updatedLocal,
         },
       };
     });
@@ -499,15 +534,23 @@ export default function ParticipantMobileView({ roomCode }) {
               <div className="phone-qa-textarea-group">
                 <textarea
                   className="phone-qa-textarea"
-                  placeholder="Short responses are recommended. You have 200 characters left."
+                  placeholder={
+                    isQaLimitReached
+                      ? 'Question limit reached'
+                      : 'Short responses are recommended. You have 200 characters left.'
+                  }
                   maxLength={200}
                   value={qaInput}
+                  disabled={isQaLimitReached}
                   onChange={(e) => setQaInput(e.target.value)}
                 />
               </div>
+              <p className="phone-help-text" style={{ padding: '0 4px', margin: '8px 0 16px' }}>
+                {qaHelperMessage()}
+              </p>
               <button
                 className="phone-qa-submit-button"
-                disabled={!qaInput.trim()}
+                disabled={isQaLimitReached || !qaInput.trim()}
                 onClick={handleQaSubmit}
               >
                 Submit
@@ -561,15 +604,17 @@ export default function ParticipantMobileView({ roomCode }) {
 
           <div className="phone-qa-list">
             {sortedQuestions.map((q) => {
-              const isQuestionLiked = !!userLikedQuestions[q.id];
+              const isQuestionLiked = !!userLikedQuestions[q.id] || !!userLikedQuestions[String(q.id)];
+              const isMyQuestion = myQuestions.some((mqId) => String(mqId) === String(q.id));
               return (
                 <div key={q.id} className="phone-qa-item">
                   <div className="phone-qa-item-content">
-                    <span className="phone-qa-badge">your question</span>
+                    {isMyQuestion && <span className="phone-qa-badge">your question</span>}
                     <p className="phone-qa-item-text">{q.text}</p>
                   </div>
                   <div className="phone-qa-like-column">
                     <button
+                      type="button"
                       className={`phone-qa-like-pill ${isQuestionLiked ? 'liked' : ''}`}
                       onClick={() => handleQaLike(q.id)}
                       title={isQuestionLiked ? 'Unlike' : 'Like'}
@@ -588,12 +633,14 @@ export default function ParticipantMobileView({ roomCode }) {
           <div className="phone-qa-bottom">
             <button
               className="phone-qa-ask-button"
+              disabled={isQaLimitReached}
               onClick={() => {
+                if (isQaLimitReached) return;
                 setQaInput('');
                 setQaViewMode('input');
               }}
             >
-              Ask new question
+              {isQaLimitReached ? 'Question limit reached' : 'Ask new question'}
             </button>
             <button
               className={`phone-thumbs-btn ${isLiked ? 'liked' : ''}`}
