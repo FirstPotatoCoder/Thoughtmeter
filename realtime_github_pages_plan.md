@@ -102,21 +102,21 @@ flowchart LR
 - [x] Configure `vite.config.js` with `base: './'` for zero-config subpath deployment on GitHub Pages.
 
 ### Phase 3: Realtime Room Sync Service (`RoomService.js`)
-- [ ] Abstract real-time interactions into a clean client service (`src/services/roomService.js`):
-  - `hostCreateRoom(deck, joinCode)`: initializes room in cloud, listens for student submissions.
-  - `hostChangeSlide(joinCode, slideIndex)`: notifies all audience phones when presenter changes slide.
-  - `participantJoinRoom(joinCode)`: listens for active slide updates from presenter.
-  - `participantSubmitResponse(joinCode, slideId, payload)`: pushes vote / word / question.
-  - `participantSendReaction(joinCode, type)`: broadcasts floating reaction to host.
-- [ ] Configure free Firebase project or lightweight signaling instance.
+- [x] Abstract real-time interactions into a clean client service (`src/services/roomService.js`):
+  - `createHostSession(roomCode, initialSlide, deckTitle)`: initializes room, listens for student submissions.
+  - `hostSession.updateSlide(slide, deckTitle)`: notifies all audience phones when presenter changes slide.
+  - `joinParticipantSession(roomCode)`: listens for active slide updates from presenter.
+  - `participantSession.submitVote(slideId, payload)`: pushes vote / word / question.
+  - `participantSession.sendReaction(type)`: broadcasts floating reaction to host.
+- [x] Configure zero-latency LAN WebSocket relay plugin in `vite.config.js` (`/thoughtmeter-relay`) with cloud WSS fallback.
 
 ### Phase 4: Full Presentation Integration
-- [ ] Update `PresentationPreview.jsx`:
-  - When "Start presentation" is clicked, generate a live `joinCode` and activate `RoomService`.
-  - Display actual dynamic QR code pointing to `https://firstpotatocoder.github.io/Thoughtmeter/#/join/{joinCode}`.
-  - Bind live submissions (MCQ bar updates, Word Cloud additions, Q&A question arrivals) to the presenter state.
+- [x] Update `PresentationPreview.jsx`:
+  - When "Start presentation" is active, generate a live `joinCode` and activate `RoomService`.
+  - Display actual dynamic QR code pointing to `.../#/join/<joinCode>`.
+  - Bind live submissions (MCQ multi-vote tallies, Word Cloud additions, Q&A question arrivals) to the presenter state.
   - Bind live reaction broadcasts to trigger floating thumbs-up reactions.
-- [ ] Add live audience count indicator ("X participants connected").
+- [x] Add live audience count indicator ("X participants connected").
 
 ### Phase 5: GitHub Pages CI/CD Workflow
 - [ ] Create `.github/workflows/deploy.yml` to automatically build Vite app and deploy `dist/` to GitHub Pages upon pushing to `main`.

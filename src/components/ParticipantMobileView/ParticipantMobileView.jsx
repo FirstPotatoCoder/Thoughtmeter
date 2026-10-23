@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './ParticipantMobileView.css';
 import Icon from '../Icon/Icon';
-import { getActiveDeck } from '../../utils/deckStorage';
 import { getSlideSetting, getDefaultMaxResponses } from '../../utils/slideSettings';
+import { joinParticipantSession } from '../../services/roomService';
 
 // Brand Logo
 function MentiLogo({ size = 20 }) {
@@ -18,21 +18,9 @@ function MentiLogo({ size = 20 }) {
   );
 }
 
-const DEFAULT_FALLBACK_SLIDE = {
-  id: 'fallback_sample',
-  type: 'mcq',
-  questionHtml: 'Welcome! What would you like to explore today?',
-  options: [
-    { id: 1, label: 'Interactive Polling & Quizzes' },
-    { id: 2, label: 'Word Clouds & Brainstorming' },
-    { id: 3, label: 'Live Q&A & Reactions' },
-  ],
-};
-
 export default function ParticipantMobileView({ roomCode }) {
-  const currentDeck = getActiveDeck();
-  const slides = currentDeck.slides || [];
-  const currentSlide = slides[0] || DEFAULT_FALLBACK_SLIDE;
+  const [currentSlide, setCurrentSlide] = useState(null);
+  const sessionRef = useRef(null);
 
   // Local participant states
   const [selectedMcqOptions, setSelectedMcqOptions] = useState([]);
@@ -49,6 +37,28 @@ export default function ParticipantMobileView({ roomCode }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [floatingReactions, setFloatingReactions] = useState([]);
 
+  // Subscribe to live presentation room
+  useEffect(() => {
+    const session = joinParticipantSession(roomCode);
+    sessionRef.current = session;
+
+    const unsubSlide = session.onSlideChange(({ slide }) => {
+      if (slide) {
+        setCurrentSlide(slide);
+        // Reset form inputs for the new slide
+        setSelectedMcqOptions([]);
+        setWordInputs(['', '', '']);
+        setOpenResponse('');
+        setIsSubmitted(false);
+      }
+    });
+
+    return () => {
+      unsubSlide();
+      session.close();
+    };
+  }, [roomCode]);
+
   const cleanQuestionTitle = (html) => {
     if (!html) return '';
     return html.replace(/<[^>]*>/g, '').trim();
@@ -56,6 +66,7 @@ export default function ParticipantMobileView({ roomCode }) {
 
   const triggerReaction = () => {
     setIsLiked(true);
+    sessionRef.current?.sendReaction('thumbsUp');
     const id = Date.now() + Math.random();
     const driftX = (Math.random() - 0.5) * 80;
     setFloatingReactions((prev) => [...prev, { id, driftX }]);
@@ -82,7 +93,11 @@ export default function ParticipantMobileView({ roomCode }) {
   };
 
   const handleMcqSubmit = () => {
-    if (selectedMcqOptions.length > 0) {
+    if (selectedMcqOptions.length > 0 && currentSlide) {
+      sessionRef.current?.submitVote(currentSlide.id, {
+        type: 'mcq',
+        selectedOptionIndices: selectedMcqOptions,
+      });
       setIsSubmitted(true);
     }
   };
@@ -97,23 +112,37 @@ export default function ParticipantMobileView({ roomCode }) {
   };
 
   const handleWordSubmit = () => {
-    if (wordInputs.some((w) => w.trim())) {
+    const words = wordInputs.map((w) => w.trim()).filter(Boolean);
+    if (words.length > 0 && currentSlide) {
+      sessionRef.current?.submitVote(currentSlide.id, {
+        type: 'word-cloud',
+        words,
+      });
       setIsSubmitted(true);
     }
   };
 
   // Open-ended Handlers
   const handleOpenSubmit = () => {
-    if (openResponse.trim()) {
+    if (openResponse.trim() && currentSlide) {
+      sessionRef.current?.submitVote(currentSlide.id, {
+        type: 'open-ended',
+        text: openResponse.trim(),
+      });
       setIsSubmitted(true);
     }
   };
 
   // Q&A Handlers
   const handleQaSubmit = () => {
-    if (qaQuestion.trim()) {
+    const trimmed = qaQuestion.trim();
+    if (trimmed && currentSlide) {
+      sessionRef.current?.submitVote(currentSlide.id, {
+        type: 'qa',
+        text: trimmed,
+      });
       setQaQuestions((prev) => [
-        { id: Date.now(), text: qaQuestion.trim(), likes: 0, answered: false },
+        { id: Date.now(), text: trimmed, likes: 0, answered: false },
         ...prev,
       ]);
       setQaQuestion('');

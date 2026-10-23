@@ -7,6 +7,7 @@ import McqPreview from '../EditorArea/McqPreview';
 import OpenEndedPreview from '../EditorArea/OpenEndedPreview';
 import QaPreview from '../EditorArea/QaPreview';
 import { MCQ_COLORS } from '../../palette';
+import { createHostSession } from '../../services/roomService';
 import {
   subscribeSlideSettings,
   getSlideSetting,
@@ -323,6 +324,87 @@ export default function PresentationPreview({
   // Whether current slide has received a response (either via toggle or participant submit)
   const hasResponse = testResponses || submissionCount > 0;
 
+  const [connectedParticipants, setConnectedParticipants] = useState(0);
+  const hostSessionRef = useRef(null);
+
+  // Initialize Realtime Host Session
+  useEffect(() => {
+    const session = createHostSession(cleanJoinCode, currentSlide, slideTitle);
+    hostSessionRef.current = session;
+
+    session.onParticipantCount((count) => {
+      setConnectedParticipants(count);
+    });
+
+    session.onReaction(() => {
+      triggerThumbsUp();
+    });
+
+    session.onVote(({ slideId, payload }) => {
+      if (!payload) return;
+      const targetSlideId = slideId || currentSlide?.id;
+
+      setUserSubmissions((prev) => {
+        const existing = prev[targetSlideId] || {};
+
+        if (payload.type === 'mcq') {
+          const tallies = { ...existing.tallies };
+          for (const idx of payload.selectedOptionIndices || []) {
+            tallies[idx] = (tallies[idx] || 0) + 1;
+          }
+          return {
+            ...prev,
+            [targetSlideId]: {
+              ...existing,
+              tallies,
+              selectedOptionIndices: Object.keys(tallies).map(Number),
+            },
+          };
+        }
+
+        if (payload.type === 'word-cloud') {
+          const words = [...(existing.words || []), ...(payload.words || [])];
+          return {
+            ...prev,
+            [targetSlideId]: { ...existing, words },
+          };
+        }
+
+        if (payload.type === 'open-ended') {
+          const responses = [...(existing.responses || []), payload.text];
+          return {
+            ...prev,
+            [targetSlideId]: { ...existing, responses },
+          };
+        }
+
+        if (payload.type === 'qa') {
+          const newQ = { id: Date.now(), text: payload.text, likes: 0, answered: false };
+          return {
+            ...prev,
+            [targetSlideId]: {
+              ...existing,
+              questions: [...(existing.questions || []), newQ],
+            },
+          };
+        }
+
+        return prev;
+      });
+    });
+
+    return () => {
+      session.close();
+    };
+  }, [cleanJoinCode]);
+
+  // Broadcast slide changes to audience in real time
+  useEffect(() => {
+    if (hostSessionRef.current && currentSlide) {
+      hostSessionRef.current.updateSlide(currentSlide, slideTitle);
+    }
+  }, [currentSlide, slideTitle]);
+
   // Timer interval countdown
   useEffect(() => {
     if (!isTimerRunning || !isTimerOpen) return;
@@ -534,21 +616,31 @@ export default function PresentationPreview({
       }
 
       const submission = userSubmissions[currentSlide.id];
+      const tallies = submission?.tallies || {};
       const selectedIndices = submission?.selectedOptionIndices || [];
+      const totalVotes = Object.values(tallies).reduce((a, b) => a + b, 0);
+      const hasVotes = totalVotes > 0 || selectedIndices.length > 0;
 
-      if (selectedIndices.length > 0) {
+      if (hasVotes) {
+        const maxVote = Math.max(1, ...Object.values(tallies));
         return (
           <div className="mcq-sent-preview">
             {options.map((opt, i) => {
-              const isSelected = selectedIndices.includes(i);
+              const count = tallies[i] ?? (selectedIndices.includes(i) ? 1 : 0);
+              const heightPercent = count > 0 ? Math.max(20, Math.round((count / maxVote) * 100)) : 0;
               return (
                 <div key={opt.id || i} className="mcq-sent-col">
-                  {isSelected ? (
+                  {count > 0 ? (
                     <div className="mcq-sent-bar-wrapper">
-                      <span className="mcq-sent-count">1</span>
+                      <span className="mcq-sent-count">{count}</span>
                       <div
                         className="mcq-sent-bar"
-                        style={{ background: opt.color || '#5E6BE8' }}
+                        style={{
+                          background: opt.color || '#5E6BE8',
+                          height: `${heightPercent}%`,
+                          minHeight: '28px',
+                          transition: 'height 0.35s ease',
+                        }}
                       />
                     </div>
                   ) : (
@@ -1131,7 +1223,11 @@ export default function PresentationPreview({
           </div>
 
           <div className="pres-waiting-pill">
-            {submissionCount > 0 ? `${submissionCount} joined` : 'Waiting for participants'}
+            {connectedParticipants > 0
+              ? `${connectedParticipants} participant${connectedParticipants === 1 ? '' : 's'}`
+              : submissionCount > 0
+              ? `${submissionCount} joined`
+              : 'Waiting for participants'}
           </div>
         </div>
 
