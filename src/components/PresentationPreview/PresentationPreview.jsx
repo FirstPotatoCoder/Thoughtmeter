@@ -208,31 +208,9 @@ export default function PresentationPreview({
     </div>
   );
 
-  // Reusable Timer Widget
+  // Reusable Timer Widget matching Menti design
   const renderTimerWidget = (extraClass = '') => (
     <div className={`host-timer-widget ${extraClass}`}>
-      <button
-        className="timer-control-btn"
-        onClick={() => setTimerSeconds((prev) => Math.max(10, prev - 30))}
-        title="Subtract 30s"
-      >
-        −
-      </button>
-      <span className="timer-display-text">{formatTime(timerSeconds)}</span>
-      <button
-        className="timer-control-btn"
-        onClick={() => setTimerSeconds((prev) => prev + 30)}
-        title="Add 30s"
-      >
-        +
-      </button>
-      <button
-        className="timer-play-btn"
-        onClick={() => setIsTimerRunning((prev) => !prev)}
-        title={isTimerRunning ? 'Pause timer' : 'Start timer'}
-      >
-        {isTimerRunning ? '⏸' : '▶'}
-      </button>
       <button
         className="timer-close-btn"
         onClick={() => {
@@ -243,6 +221,49 @@ export default function PresentationPreview({
       >
         ×
       </button>
+
+      <div className="timer-controls-row">
+        <button
+          className="timer-control-btn timer-minus-btn"
+          onClick={() => setTimerSeconds((prev) => Math.max(10, prev - 30))}
+          title="Subtract 30s"
+        >
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="2" y="7" width="12" height="2" rx="1" />
+          </svg>
+        </button>
+
+        <span className="timer-display-text">{formatTime(timerSeconds)}</span>
+
+        <div className="timer-right-actions">
+          <button
+            className="timer-control-btn timer-plus-btn"
+            onClick={() => setTimerSeconds((prev) => prev + 30)}
+            title="Add 30s"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="2" y="7" width="12" height="2" rx="1" />
+              <rect x="7" y="2" width="2" height="12" rx="1" />
+            </svg>
+          </button>
+          <button
+            className="timer-play-btn"
+            onClick={() => setIsTimerRunning((prev) => !prev)}
+            title={isTimerRunning ? 'Pause timer' : 'Start timer'}
+          >
+            {isTimerRunning ? (
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="3" y="2.5" width="3.5" height="11" rx="1" />
+                <rect x="9.5" y="2.5" width="3.5" height="11" rx="1" />
+              </svg>
+            ) : (
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ marginLeft: '1.5px' }}>
+                <path d="M4 2.5v11l9-5.5-9-5.5z" />
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 
@@ -359,6 +380,8 @@ export default function PresentationPreview({
         handleClose();
       } else if (e.key === 'i' || e.key === 'I') {
         setIsQrOpen((prev) => !prev);
+      } else if (e.key === 't' || e.key === 'T') {
+        setIsTimerOpen((prev) => !prev);
       } else if (e.key === 'h' || e.key === 'H') {
         setIsResultsHidden((prev) => !prev);
       } else if (e.key === 'l' || e.key === 'L') {
@@ -1073,12 +1096,11 @@ export default function PresentationPreview({
           </SlideScaler>
         </div>
 
-        {/* Standalone Timer Widget when QR is OFF */}
-        {isTimerOpen && !isQrOpen && renderTimerWidget('standalone pres-timer-standalone')}
+        {/* Timer Widget in Presentation Mode (Absolute position, completely independent of QR) */}
+        {isTimerOpen && renderTimerWidget('pres-timer-widget')}
 
         {/* QR Code Column on Right (Fixed to screen right edge, matching ref.png) */}
         <div className={`pres-qr-column ${isQrOpen ? 'visible' : 'hidden'}`}>
-          {isTimerOpen && renderTimerWidget()}
           <div className="qr-overlay-box pres-qr-box">
             <button
               className="qr-close-btn"
@@ -1236,15 +1258,12 @@ export default function PresentationPreview({
                   {/* Floating Reactions Overlay */}
                   {renderReactionsOverlay()}
 
-                  {/* Standalone Timer Widget when QR is OFF (sits below logo without covering it) */}
-                  {isTimerOpen && !isQrOpen && renderTimerWidget('standalone')}
+                  {/* Timer Widget in Host Preview (Absolute position, completely independent of QR) */}
+                  {isTimerOpen && renderTimerWidget('host-preview-timer')}
 
                   {/* QR Overlay Box (Vertically Aligned) or Compact Footer */}
                   {isQrOpen ? (
                     <div className="host-qr-column">
-                      {/* Timer Widget directly above & centered on the QR Code */}
-                      {isTimerOpen && renderTimerWidget()}
-
                       <div className="qr-overlay-box">
                         <button
                           className="qr-close-btn"
