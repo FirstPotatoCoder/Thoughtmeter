@@ -56,6 +56,7 @@ export default function ParticipantMobileView({ roomCode }) {
   }, [submissionsBySlide, storageKey]);
 
   // Temporary / draft input states for the currently displayed slide
+  const [manualCode, setManualCode] = useState('');
   const [selectedMcqOptions, setSelectedMcqOptions] = useState([]);
   const [wordInput, setWordInput] = useState('');
   const [openInput, setOpenInput] = useState('');
@@ -66,7 +67,8 @@ export default function ParticipantMobileView({ roomCode }) {
 
   // Subscribe to live room via Realtime Service
   useEffect(() => {
-    const session = joinParticipantSession(roomCode);
+    if (!cleanCode) return;
+    const session = joinParticipantSession(cleanCode);
     sessionRef.current = session;
 
     const unsubSlide = session.onSlideChange(({ slide }) => {
@@ -656,6 +658,82 @@ export default function ParticipantMobileView({ roomCode }) {
 
     return null;
   };
+
+  if (!cleanCode) {
+    return (
+      <div className="mobile-participant-screen">
+        <div
+          className="participant-phone-frame"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '32px 24px',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ marginBottom: 32 }}>
+            <MentiLogo size={28} />
+          </div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 8px', color: '#1A2044' }}>
+            Join a presentation
+          </h2>
+          <p style={{ fontSize: 14, color: '#666', margin: '0 0 24px' }}>
+            Enter the 8-digit code shown on the screen
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const trimmed = manualCode.replace(/\s+/g, '');
+              if (trimmed) {
+                window.location.hash = `#/join/${trimmed}`;
+              }
+            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+          >
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="1234 5678"
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                fontSize: 22,
+                fontWeight: 600,
+                textAlign: 'center',
+                letterSpacing: 2,
+                borderRadius: 12,
+                border: '2px solid #E5E7EB',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={!manualCode.trim()}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                fontSize: 16,
+                fontWeight: 600,
+                background: manualCode.trim() ? '#1A2044' : '#E5E7EB',
+                color: manualCode.trim() ? '#FFFFFF' : '#9CA3AF',
+                border: 'none',
+                borderRadius: 12,
+                cursor: manualCode.trim() ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s',
+              }}
+            >
+              Join
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mobile-participant-screen">

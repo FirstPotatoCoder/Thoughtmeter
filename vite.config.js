@@ -1,6 +1,22 @@
+import os from 'node:os';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { WebSocketServer } from 'ws';
+
+/**
+ * Detect primary local IPv4 address for zero-config Wi-Fi LAN hosting.
+ */
+function getLanIp() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return null;
+}
 
 /**
  * Thoughtmeter Realtime WebSocket Relay Plugin for LAN & Local Dev.
@@ -13,6 +29,19 @@ function thoughtmeterRelayPlugin() {
     name: 'thoughtmeter-relay-plugin',
     configureServer(server) {
       if (!server.httpServer) return;
+
+      // Endpoint to provide clients with the host's LAN IP address
+      server.middlewares.use((req, res, next) => {
+        if (req.url === '/thoughtmeter-lan-info') {
+          const lanIp = getLanIp();
+          const port = server.config.server.port || 5173;
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.end(JSON.stringify({ lanIp, port }));
+          return;
+        }
+        next();
+      });
 
       const wss = new WebSocketServer({ noServer: true });
       const rooms = new Map();
@@ -156,4 +185,15 @@ function thoughtmeterRelayPlugin() {
 export default defineConfig({
   plugins: [react(), thoughtmeterRelayPlugin()],
   base: './',
+  server: {
+    host: true, // Listen on all network addresses (0.0.0.0) by default
+    port: 5173,
+  },
+  preview: {
+    host: true,
+    port: 5173,
+  },
+  define: {
+    __DEV_LAN_IP__: JSON.stringify(getLanIp()),
+  },
 });

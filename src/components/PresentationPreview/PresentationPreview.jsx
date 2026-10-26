@@ -297,9 +297,32 @@ export default function PresentationPreview({
   const basePath = typeof window !== 'undefined'
     ? window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '')
     : '';
+
+  const [lanIp, setLanIp] = useState(() => (typeof __DEV_LAN_IP__ !== 'undefined' ? __DEV_LAN_IP__ : ''));
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      fetch('/thoughtmeter-lan-info')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.lanIp) setLanIp(data.lanIp);
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  const isLocalHost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const effectiveHost = isLocalHost && lanIp
+    ? `${lanIp}:${window.location.port || 5173}`
+    : (typeof window !== 'undefined' ? window.location.host : '');
+
   const dynamicJoinUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${basePath}/#/join/${cleanJoinCode}`
+    ? `${window.location.protocol}//${effectiveHost}${basePath}/#/join/${cleanJoinCode}`
     : `https://menti.com/${cleanJoinCode}`;
+
+  const joinDisplayHost = isLocalHost && lanIp
+    ? effectiveHost
+    : (typeof window !== 'undefined' && !isLocalHost ? window.location.host : 'menti.com');
 
   const currentSlide = deck[currentSlideIndex] || deck[0];
   const slideTitle = currentSlide?.questionHtml ? currentSlide.questionHtml.replace(/<[^>]*>/g, '').trim() : '';
@@ -1293,7 +1316,7 @@ export default function PresentationPreview({
                 height="280"
               />
             </div>
-            <div className="qr-url pres-qr-url">menti.com</div>
+            <div className="qr-url pres-qr-url">{joinDisplayHost}</div>
             <div className="qr-code-num pres-qr-code-num">{joinCode}</div>
           </div>
 
@@ -1360,7 +1383,7 @@ export default function PresentationPreview({
         {/* Bottom-Right info when QR is closed (matching image2.png) */}
         <div className={`pres-bottom-right-info ${!isQrOpen ? 'visible' : 'hidden'}`}>
           <span className="pres-join-text">
-            Join at <strong>menti.com</strong> <strong>{joinCode}</strong>
+            Join at <strong>{joinDisplayHost}</strong> <strong>{joinCode}</strong>
           </span>
           <div className="pres-user-badge">
             <Icon name="users" size={16} />
@@ -1461,7 +1484,7 @@ export default function PresentationPreview({
                           />
                           <div className="qr-test-badge">TEST</div>
                         </div>
-                        <div className="qr-url">menti.com</div>
+                        <div className="qr-url">{joinDisplayHost}</div>
                         <div className="qr-code-num">{joinCode}</div>
                       </div>
 
@@ -1488,7 +1511,7 @@ export default function PresentationPreview({
                   ) : (
                     <div className="host-slide-compact-footer">
                       <span className="compact-join-text">
-                        Join at <strong>menti.com</strong> <strong>{joinCode}</strong>
+                        Join at <strong>{joinDisplayHost}</strong> <strong>{joinCode}</strong>
                       </span>
                       <span className={`compact-user-pill ${hasResponse ? 'active' : ''}`}>
                         <Icon name="user" size={13} />
