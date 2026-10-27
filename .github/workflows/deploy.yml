@@ -35,6 +35,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_MQTT_BROKER_URL: ${{ vars.VITE_MQTT_BROKER_URL }}
+          VITE_MQTT_USERNAME: ${{ vars.VITE_MQTT_USERNAME }}
+          VITE_MQTT_PASSWORD: ${{ secrets.VITE_MQTT_PASSWORD }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
