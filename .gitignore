@@ -23,3 +23,5 @@ images/
 *.njsproj
 *.sln
 *.sw?
+
+.env

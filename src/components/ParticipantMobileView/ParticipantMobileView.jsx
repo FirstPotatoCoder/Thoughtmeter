@@ -57,6 +57,7 @@ export default function ParticipantMobileView({ roomCode }) {
 
   // Temporary / draft input states for the currently displayed slide
   const [manualCode, setManualCode] = useState('');
+  const [isPresentationEnded, setIsPresentationEnded] = useState(false);
   const [selectedMcqOptions, setSelectedMcqOptions] = useState([]);
   const [wordInput, setWordInput] = useState('');
   const [openInput, setOpenInput] = useState('');
@@ -73,6 +74,7 @@ export default function ParticipantMobileView({ roomCode }) {
 
     const unsubSlide = session.onSlideChange(({ slide }) => {
       if (slide) {
+        setIsPresentationEnded(false);
         setCurrentSlide((prevSlide) => {
           if (!prevSlide || prevSlide.id !== slide.id) {
             // Reset only unsubmitted draft input states when moving between slides.
@@ -88,11 +90,17 @@ export default function ParticipantMobileView({ roomCode }) {
       }
     });
 
+    const unsubDisconnect = session.onHostDisconnected(() => {
+      setIsPresentationEnded(true);
+      session.close();
+    });
+
     return () => {
       unsubSlide();
+      unsubDisconnect();
       session.close();
     };
-  }, [roomCode]);
+  }, [cleanCode]);
 
   const slideTitle = currentSlide?.questionHtml
     ? currentSlide.questionHtml.replace(/<[^>]*>/g, '').trim()
@@ -730,6 +738,68 @@ export default function ParticipantMobileView({ roomCode }) {
               Join
             </button>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPresentationEnded) {
+    return (
+      <div className="mobile-participant-screen">
+        <div
+          className="participant-phone-frame"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '40px 24px',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ marginBottom: 32 }}>
+            <MentiLogo size={28} />
+          </div>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: '#F0F4FF',
+              color: '#5064E7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 24,
+            }}
+          >
+            <Icon name="check" size={32} />
+          </div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 10px', color: '#1A2044' }}>
+            The presentation has ended
+          </h2>
+          <p style={{ fontSize: 15, color: '#666', lineHeight: 1.5, margin: '0 0 32px', maxWidth: 280 }}>
+            Thank you for participating! You can close this window now.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.hash = '#/join';
+              window.location.reload();
+            }}
+            style={{
+              padding: '12px 28px',
+              fontSize: 14,
+              fontWeight: 600,
+              background: '#F1F2F4',
+              color: '#333333',
+              border: 'none',
+              borderRadius: '999px',
+              cursor: 'pointer',
+            }}
+          >
+            Join another presentation
+          </button>
         </div>
       </div>
     );

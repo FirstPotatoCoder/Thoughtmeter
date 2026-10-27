@@ -2,15 +2,15 @@
 
 /* Standalone Mobile Participant Viewport */
 .mobile-participant-screen {
-  width: 100vw;
+  width: 100%;
   min-height: 100dvh;
   background: #F4F5F7;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  overflow-x: hidden;
   box-sizing: border-box;
+  touch-action: pan-x pan-y pinch-zoom;
 }
 
 /* On smartphones (<= 500px): Fullscreen edge-to-edge experience without desktop bezels */
@@ -18,13 +18,14 @@
   width: 100%;
   max-width: 440px;
   min-height: 100dvh;
-  height: 100dvh;
   border-radius: 0;
   border: none;
   box-shadow: none;
   background: #FFFFFF;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* On desktop / tablet (> 500px): Clean centered phone frame mockup */
